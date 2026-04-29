@@ -49,6 +49,13 @@ def _validate_pin(name: str, value, allow_none: bool = False) -> int:
     return value
 
 
+# Pins owned by the Geekworm X1201 UPS HAT — must not be reassigned to
+# the user buttons or the SSR. GPIO 2/3 = I²C bus (fuel gauge); GPIO 6 =
+# PLD (power-loss-detect). The X1201's onboard pushbutton is on GPIO 3
+# (Pi 5 wake pin, doubles as I²C SCL).
+X1201_RESERVED_PINS = {2, 3, 6}
+
+
 # Configure logging to journald (stdout)
 logging.basicConfig(
     level=logging.INFO,
@@ -156,6 +163,17 @@ class MatrixController:
                 if pin in seen:
                     raise ValueError(f"GPIO {pin} assigned to both {seen[pin]} and {role}")
                 seen[pin] = role
+
+            # Buttons and relay must not collide with X1201-reserved pins.
+            # The UPS itself is allowed to claim GPIO 6 for its PLD output.
+            for role, pin in pins_in_use.items():
+                if role == 'ups':
+                    continue
+                if pin in X1201_RESERVED_PINS:
+                    raise ValueError(
+                        f"GPIO {pin} (assigned to {role}) is reserved by the Geekworm X1201 UPS HAT "
+                        f"(reserved: {sorted(X1201_RESERVED_PINS)}). Pick a different pin."
+                    )
 
             # Set logging level
             log_level = getattr(logging, config['logging']['level'].upper(), logging.INFO)

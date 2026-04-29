@@ -44,11 +44,15 @@ relay:
   active_high: true  # true = HIGH turns relay ON, false = LOW turns relay ON
 
 # UPS monitoring
+# Default values are correct for a Geekworm X1201 UPS HAT on a Pi 5:
+#  - mains_lost_pin: 6   (X1201 PLD output, BCM GPIO 6, header pin 31)
+#  - edge: "falling"     (X1201 PLD = HIGH when mains OK, LOW on power loss)
+# Switch `mode` to "gpio" once the X1201 is physically wired and the
+# 2x18650 cells are charged.
 ups:
-  mode: "gpio"       # "disabled" or "gpio"
-  mains_lost_pin: 21 # GPIO pin for UPS mains-lost signal (only used if mode=gpio)
-  edge: "rising"     # "rising" or "falling" - which edge triggers shutdown
-                     # Typically: rising = mains lost, falling = mains restored
+  mode: "disabled"      # "disabled" or "gpio"
+  mains_lost_pin: 6     # X1201 PLD on BCM GPIO 6 (header pin 31)
+  edge: "falling"       # PLD goes 1 -> 0 on mains loss
 
 # LED service
 led_service:

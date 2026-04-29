@@ -134,6 +134,9 @@ chromium-browser \
     --disable-field-trial-config \
     --check-for-update-interval=31536000 \
     --autoplay-policy=no-user-gesture-required \
+    --remote-debugging-port=9222 \
+    --remote-debugging-address=127.0.0.1 \
+    --remote-allow-origins=http://127.0.0.1:9222,http://localhost:9222 \
     "http://localhost:$HTTP_PORT" >/dev/null 2>&1 &
 
 CHROME_PID=$!
