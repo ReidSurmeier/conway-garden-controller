@@ -1,0 +1,12 @@
+[Unit]
+Description=Run conway-health daily
+Documentation=man:conway-garden(7)
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=24h
+Persistent=true
+RandomizedDelaySec=10min
+
+[Install]
+WantedBy=timers.target

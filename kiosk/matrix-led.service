@@ -1,0 +1,27 @@
+[Unit]
+Description=Conway Point Cloud Garden LED Display
+After=graphical.target network.target
+Requires=graphical.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/Desktop/conway.pointcloud.garden
+
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+Environment=HOME=/home/pi
+
+ExecStart=/home/pi/Desktop/matrix-led-start.sh
+
+# matrix-led-start.sh installs a TRAP that cleans up its own children via
+# pidfiles. KillMode=control-group ensures any stragglers also die.
+Restart=no
+KillMode=control-group
+KillSignal=SIGTERM
+TimeoutStopSec=10
+SendSIGKILL=yes
+
+[Install]
+WantedBy=graphical.target

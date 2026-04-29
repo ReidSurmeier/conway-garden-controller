@@ -1,0 +1,78 @@
+#       RSRSRSRSba   RSRSRSRSRS8  RS  RSRSRSRSba,
+#       RS      "8b  RS           RS  RS      `"8b
+#       RS      ,8P  RS           RS  RS        `8b
+#       RSaaaaaa8P'  RSaaaaa      RS  RS         RS
+#       RS""""RS'    RS"""""      RS  RS         RS
+#       RS    `8b    RS           RS  RS         8P
+#       RS     `8b   RS           RS  RS      .a8P
+#       RS      `8b  RSRSRSRSRS8  RS  RSRSRSRSY"'
+#
+#        adRSRS8ba   RS        RS  RSRSRSRSba   RSb           dRS  RSRSRSRSRS8  RS  RSRSRSRSRS8  RSRSRSRSba
+#       d8"     "8b  RS        RS  RS      "8b  RS8b         dRS8  RS           RS  RS           RS      "8b
+#       Y8,          RS        RS  RS      ,8P  RS`8b       d8'RS  RS           RS  RS           RS      ,8P
+#       `Y8aaaaa,    RS        RS  RSaaaaaa8P'  RS `8b     d8' RS  RSaaaaa      RS  RSaaaaa      RSaaaaaa8P'
+#         `"""""8b,  RS        RS  RS""""RS'    RS  `8b   d8'  RS  RS"""""      RS  RS"""""      RS""""RS'
+#               `8b  RS        RS  RS    `8b    RS   `8b d8'   RS  RS           RS  RS           RS    `8b
+#       Y8a     a8P  Y8a.    .a8P  RS     `8b   RS    `RS8'    RS  RS           RS  RS           RS     `8b
+#        "YRSRS8P"    `"YRSRSY"'   RS      `8b  RS     `8'     RS  RSRSRSRSRS8  RS  RSRSRSRSRS8  RS      `8b
+#
+#        I8,        8        ,8I  RSRSRSRSRSRS  RSRSRSRSRS8
+#        `8b       d8b       d8'       RS       RS
+#         "8,     ,8"8,     ,8"        RS       RS
+#          Y8     8P Y8     8P         RS       RSaaaaa
+#          `8b   d8' `8b   d8'         RS       RS"""""
+#           `8a a8'   `8a a8'          RS       RS
+#       RS8  `8a8'     `8a8'           RS       RS
+#       RS8   `8'       `8'            RS       RS
+#
+# Author:  Reid Surmeier
+# Client:  Clement Valla
+# Date:    2026 Feb 16th
+
+[Unit]
+Description=Matrix Controller Daemon
+Documentation=file:///usr/share/doc/matrix-controller/README.md
+After=network.target
+Wants=network.target
+# Don't restart-loop forever if something is fundamentally broken — give up after
+# 10 restarts in 5 minutes. systemd surfaces "failed" state, the hardware
+# watchdog still keeps the OS alive, and a human can intervene.
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+[Service]
+# Type=notify lets the daemon send sd_notify("READY=1") and periodic
+# WATCHDOG=1 heartbeats. systemd kills + restarts the daemon if no
+# heartbeat arrives within WatchdogSec — covers hangs, not just crashes.
+Type=notify
+NotifyAccess=main
+WatchdogSec=30
+ExecStart=/usr/bin/python3 -m controller.main --config /etc/matrix-controller/controller.yaml
+Restart=always
+RestartSec=10
+TimeoutStartSec=30
+TimeoutStopSec=15
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=matrix-controller
+
+# Run as root to access GPIO and systemctl
+User=root
+Group=root
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+# Allow systemctl commands and shutdown
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_SYS_BOOT
+AmbientCapabilities=CAP_SYS_ADMIN CAP_SYS_BOOT
+
+# Resource caps — controller is tiny; if it ever blows up, kill it fast.
+MemoryMax=128M
+TasksMax=64
+
+[Install]
+WantedBy=multi-user.target

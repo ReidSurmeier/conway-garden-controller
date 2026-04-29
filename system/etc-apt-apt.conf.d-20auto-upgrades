@@ -1,0 +1,9 @@
+// Conservation: auto-updates DISABLED. A museum installation must not
+// silently change its software — every change must be a deliberate,
+// documented redeploy.
+//
+// Install path: /etc/apt/apt.conf.d/20auto-upgrades
+APT::Periodic::Update-Package-Lists "0";
+APT::Periodic::Unattended-Upgrade "0";
+APT::Periodic::Download-Upgradeable-Packages "0";
+APT::Periodic::AutocleanInterval "0";

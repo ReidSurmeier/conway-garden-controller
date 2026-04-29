@@ -1,0 +1,6 @@
+[Unit]
+Description=Conway Garden — daily health snapshot
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/conway-health.sh

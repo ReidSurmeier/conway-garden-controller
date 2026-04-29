@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+._*
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.log
+*.tmp
