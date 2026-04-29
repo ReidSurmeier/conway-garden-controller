@@ -28,10 +28,20 @@ echo "=== 1. Installing matrix-controller ==="
 bash "$REPO_ROOT/scripts/install.sh"
 echo ""
 
-# 2. Install the kiosk start script + service.
-echo "=== 2. Installing kiosk start script ==="
+# 2. Install the kiosk start script + service + web app.
+echo "=== 2. Installing kiosk start script + web app ==="
 install -m 0755 -o pi -g pi "$REPO_ROOT/kiosk/matrix-led-start.sh" /home/pi/Desktop/matrix-led-start.sh
 install -m 0644 "$REPO_ROOT/kiosk/matrix-led.service" /etc/systemd/system/matrix-led.service
+if [ -d "$REPO_ROOT/kiosk-app" ]; then
+    KIOSK_DEST=/home/pi/Desktop/conway.pointcloud.garden
+    rm -rf "$KIOSK_DEST"
+    cp -r "$REPO_ROOT/kiosk-app" "$KIOSK_DEST"
+    rm -f "$KIOSK_DEST/README.md"   # repo doc, not part of the running app
+    chown -R pi:pi "$KIOSK_DEST"
+    echo "  kiosk web app restored to $KIOSK_DEST"
+else
+    echo "  WARNING: $REPO_ROOT/kiosk-app missing — the kiosk will load a blank page"
+fi
 systemctl daemon-reload
 echo ""
 

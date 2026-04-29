@@ -22,10 +22,6 @@ manual.
 
 ## What this repo does NOT contain
 
-- The kiosk web app at `~/Desktop/conway.pointcloud.garden/` — that's the
-  artist's content. **Back up separately.** Without it, the Pi will boot,
-  the controller will run, the relay will fire, but Chromium will load
-  a blank page.
 - Authorized SSH keys. Add your conservator key to
   `/home/pi/.ssh/authorized_keys` after restore.
 - Wi-Fi credentials. Configure via `raspi-config` or
