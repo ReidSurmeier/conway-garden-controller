@@ -242,6 +242,12 @@ If using the current service key from Reid's Mac:
 ssh -i ~/.ssh/linux_desktop pi@10.55.0.2
 ```
 
+To force password login only:
+
+```bash
+ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no pi@10.55.0.2
+```
+
 ### Push An Update From The Mac
 
 For normal field service, the Mac should supply the release files. The Pi does
