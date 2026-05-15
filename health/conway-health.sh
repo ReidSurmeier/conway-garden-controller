@@ -47,9 +47,18 @@ if [ "${disk_pct:-0}" -ge 85 ]; then
 fi
 
 # 6. Failed systemd units?
-n_failed=$(systemctl --failed --no-legend 2>/dev/null | wc -l)
+#
+# Ignore conway-health.service itself so one bad snapshot does not permanently
+# poison future snapshots. NetworkManager-wait-online is also non-critical for
+# this appliance: direct Ethernet and Wi-Fi fallback are managed explicitly.
+failed_units=$(systemctl --failed --no-legend 2>/dev/null \
+    | awk '{print $1}' \
+    | grep -Ev '^(conway-health\.service|NetworkManager-wait-online\.service)$' \
+    || true)
+n_failed=$(printf '%s\n' "$failed_units" | awk 'NF {n++} END {print n+0}')
 if [ "${n_failed:-0}" -gt 0 ]; then
-    fails+=("${n_failed} failed systemd units")
+    failed_list=$(printf '%s\n' "$failed_units" | awk 'NF {printf "%s%s", sep, $1; sep=", "}')
+    fails+=("${n_failed} failed systemd units: ${failed_list}")
 fi
 
 # 7. SD card I/O errors in this boot?

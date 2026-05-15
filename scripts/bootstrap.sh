@@ -86,9 +86,14 @@ if [ -f "$LXDE_AUTOSTART" ] && grep -q "^@xscreensaver" "$LXDE_AUTOSTART"; then
 fi
 echo ""
 
-# 7. Disable unattended-upgrades if present.
-echo "=== 7. Disabling auto-updates ==="
-systemctl disable --now apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service 2>/dev/null || true
+# 7. Disable background services that create drift or false failures.
+echo "=== 7. Disabling background drift/noise services ==="
+systemctl disable --now apt-daily.timer apt-daily-upgrade.timer \
+    apt-daily.service apt-daily-upgrade.service unattended-upgrades.service 2>/dev/null || true
+systemctl disable --now NetworkManager-wait-online.service 2>/dev/null || true
+systemctl disable --now cups.service cups.socket cups.path cups-browsed.service \
+    bluetooth.service ModemManager.service triggerhappy.service triggerhappy.socket \
+    wayvnc-control.service 2>/dev/null || true
 echo ""
 
 # 8. Set hostname.

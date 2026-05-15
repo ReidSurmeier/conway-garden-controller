@@ -20,6 +20,8 @@ ExecStart=/home/pi/Desktop/matrix-led-start.sh
 Restart=no
 KillMode=control-group
 KillSignal=SIGTERM
+# A normal STOP path terminates Chromium/http.server and the wrapper exits 143.
+SuccessExitStatus=143
 TimeoutStopSec=10
 SendSIGKILL=yes
 
