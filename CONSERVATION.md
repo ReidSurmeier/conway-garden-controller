@@ -53,6 +53,8 @@ Verified on 2026-05-15:
   PackageKit, NetworkManager wait-online, triggerhappy hotkey hooks, CUPS,
   Bluetooth service, ModemManager, WayVNC control, and the unused DHCP Ethernet
   profile.
+- Adafruit AHT20 enclosure temperature/humidity sensor was detected on I2C bus
+  1 at address `0x38` and added to the health snapshot when present.
 
 ## 3. Normal Operation
 
@@ -107,6 +109,10 @@ GPIO numbers are BCM numbers.
 | STOP button | 19 | 35 | Button to GND, internal pull-up |
 | Relay/SSR control | 20 | 38 | Active high |
 | X1201 PLD | 6 | 31 | HIGH = wall power OK, LOW = wall power lost |
+| AHT20 VIN/VCC | - | 1 | 3.3 V power |
+| AHT20 GND | - | 6 | Ground |
+| AHT20 SDA | 2 | 3 | I2C data, address `0x38` |
+| AHT20 SCL | 3 | 5 | I2C clock |
 
 The controller config is `/etc/matrix-controller/controller.yaml`; the repo
 snapshot is `config/controller.yaml`.

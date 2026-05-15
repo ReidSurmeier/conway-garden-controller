@@ -123,6 +123,10 @@ GPIO numbers are BCM numbers.
 | STOP button | 19 | 35 | Press pulls LOW to GND |
 | Relay control | 20 | 38 | Active high |
 | X1201 PLD power loss detect | 6 | 31 | HIGH means wall power, LOW means wall power lost |
+| AHT20 VIN/VCC | - | 1 | 3.3 V power |
+| AHT20 GND | - | 6 | Ground |
+| AHT20 SDA | 2 | 3 | I2C data, address `0x38` |
+| AHT20 SCL | 3 | 5 | I2C clock |
 
 Current UPS configuration:
 

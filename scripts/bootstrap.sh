@@ -61,11 +61,19 @@ systemctl restart systemd-journald
 sshd -t && systemctl reload ssh
 echo ""
 
-# 4. Preserve boot config reference.
-echo "=== 4. Boot display config reference ==="
+# 4. Enable the I2C sensor bus and preserve boot config reference.
+echo "=== 4. Boot display and sensor config ==="
+if [ -f /boot/firmware/config.txt ]; then
+    if grep -q "^#dtparam=i2c_arm=on" /boot/firmware/config.txt; then
+        sed -i 's/^#dtparam=i2c_arm=on/dtparam=i2c_arm=on/' /boot/firmware/config.txt
+    elif ! grep -q "^dtparam=i2c_arm=on" /boot/firmware/config.txt; then
+        printf '\n# Conway enclosure temp/humidity sensor bus\ndtparam=i2c_arm=on\n' >> /boot/firmware/config.txt
+    fi
+    modprobe i2c-dev 2>/dev/null || true
+    dtparam i2c_arm=on 2>/dev/null || true
+fi
 if [ -f "$REPO_ROOT/system/boot-firmware-config.txt" ]; then
     echo "  Reference boot config is in system/boot-firmware-config.txt"
-    echo "  Not overwriting /boot/firmware/config.txt automatically."
 fi
 echo ""
 

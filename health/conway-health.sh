@@ -40,13 +40,54 @@ if [ "${temp_int:-0}" -ge 80 ]; then
     fails+=("CPU temp ${temp_c}°C >= 80°C")
 fi
 
-# 5. Disk < 85% full?
+# 5. Optional AHT20 enclosure temp/humidity sensor.
+aht20_log=""
+if [ -e /dev/i2c-1 ]; then
+    aht20_log=$(python3 - <<'PY' 2>/dev/null || true
+import sys
+import time
+
+try:
+    import smbus
+except Exception:
+    sys.exit(0)
+
+ADDR = 0x38
+try:
+    bus = smbus.SMBus(1)
+    time.sleep(0.05)
+    status = bus.read_byte(ADDR)
+    if not (status & 0x08):
+        bus.write_i2c_block_data(ADDR, 0xBE, [0x08, 0x00])
+        time.sleep(0.02)
+    bus.write_i2c_block_data(ADDR, 0xAC, [0x33, 0x00])
+    time.sleep(0.10)
+    for _ in range(10):
+        data = bus.read_i2c_block_data(ADDR, 0x00, 6)
+        if not (data[0] & 0x80):
+            break
+        time.sleep(0.02)
+    else:
+        sys.exit(0)
+except OSError:
+    sys.exit(0)
+
+raw_h = ((data[1] << 12) | (data[2] << 4) | (data[3] >> 4))
+raw_t = (((data[3] & 0x0F) << 16) | (data[4] << 8) | data[5])
+humidity = raw_h * 100.0 / 1048576.0
+temp_c = raw_t * 200.0 / 1048576.0 - 50.0
+print(f", enclosure_temp={temp_c:.1f}C, enclosure_humidity={humidity:.1f}%RH")
+PY
+)
+fi
+
+# 6. Disk < 85% full?
 disk_pct=$(df / | awk 'NR==2 {gsub("%",""); print $5}')
 if [ "${disk_pct:-0}" -ge 85 ]; then
     fails+=("/ is ${disk_pct}% full")
 fi
 
-# 6. Failed systemd units?
+# 7. Failed systemd units?
 #
 # Ignore conway-health.service itself so one bad snapshot does not permanently
 # poison future snapshots. NetworkManager-wait-online is also non-critical for
@@ -61,14 +102,14 @@ if [ "${n_failed:-0}" -gt 0 ]; then
     fails+=("${n_failed} failed systemd units: ${failed_list}")
 fi
 
-# 7. SD card I/O errors in this boot?
+# 8. SD card I/O errors in this boot?
 io_errs=$(dmesg --notime 2>/dev/null | grep -ciE "i/o error|mmc.*error|ext4-fs.*error" || true)
 if [ "${io_errs:-0}" -gt 0 ]; then
     fails+=("${io_errs} disk/SD I/O errors in dmesg")
 fi
 
 if [ ${#fails[@]} -eq 0 ]; then
-    logger -t conway-health -p user.info "OK — controller=$(systemctl is-active matrix-controller.service), temp=${temp_c}°C, disk=${disk_pct}%, throttled=${throttled}, restarts=${nrestarts}"
+    logger -t conway-health -p user.info "OK — controller=$(systemctl is-active matrix-controller.service), temp=${temp_c}°C, disk=${disk_pct}%, throttled=${throttled}, restarts=${nrestarts}${aht20_log}"
     exit 0
 else
     for f in "${fails[@]}"; do
