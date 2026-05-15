@@ -1,48 +1,75 @@
 # Conway Pointcloud Garden
 
-**Artist:** Clement Valla
-**Engineer:** Reid Surmeier
-**Current verified state:** 2026-05-15
-**Host name:** `conway-garden-1`
+Artist: Clement Valla. Engineer: Reid Surmeier. Current verified state:
+2026-05-15. Host name: `conway-garden-1`.
 
-This repository is the software, configuration, and conservation package for
-the Conway Pointcloud Garden media-art installation. A Raspberry Pi 5 runs a
-browser-based point-cloud visualization, controls display power through a
-relay/SSR, and shuts down safely when wall power is lost.
+This repository is the working Read Me for Conway Pointcloud Garden. It holds
+the software, media assets, hardware record, setup procedure, maintenance notes,
+and preservation path needed to operate or reproduce the piece.
 
-The documentation follows the conservation approach described in Rafael
-Lozano-Hemmer's *Best practices for conservation of media art from an artist's
-perspective*: the code, configuration, media assets, wiring notes, BoM, and
-operating instructions are treated as the artwork's executable score.
+The conservation frame follows Rafael Lozano-Hemmer's article, *Best practices
+for conservation of media art from an artist's perspective*. The important
+idea for this project is that the software is the score of the artwork: the
+fundamental set of instructions that makes the work perform. The Raspberry Pi,
+the NovaStar chain, the wiring, the operating system, and the manual are part
+of the same score because the piece depends on their timing, scale, and power
+sequence.
 
 Reference: https://github.com/mccoyspace/Best-practices-for-conservation-of-media-art
 
-## Current Verified Behavior
+## Current State
 
-- START button turns on the display power relay and starts `matrix-led.service`.
-- STOP button stops `matrix-led.service` and turns the display relay off.
-- STOP does not shut down the Pi.
-- Geekworm X1201 PLD on BCM GPIO 6 detects wall-power loss.
-- If wall power is lost for 10 sustained seconds, the Pi performs a systemd
-  safe shutdown through the UPS.
-- On boot, the relay is forced off and the display service is stopped.
-- SSH is currently available through Wi-Fi/Tailscale; the target handoff state
-  is direct Ethernet SSH with Pi Wi-Fi disabled.
-- Sender-card mapping is now working. The canonical app mapping is recorded in
-  `DISPLAY_MAPPING.md`.
+The live system was audited on 2026-05-15. START powers the display side and
+starts `matrix-led.service`. STOP turns the display side off and stops the
+kiosk service. STOP does not halt the Pi.
 
-## Operator Use
+The Geekworm X1201 UPS is wired into the controller through its PLD signal on
+BCM GPIO 6. With wall power present, GPIO 6 is HIGH. When wall power is lost,
+GPIO 6 falls LOW. If that loss of wall power stays present for 10 seconds, the
+controller stops the display service, turns the relay off, and asks systemd to
+shut the Pi down cleanly.
 
-Normal operation is physical:
+The display is currently working through the NovaStar sender and receiver
+mapping. The verified app side mapping is recorded in [DISPLAY_MAPPING.md](DISPLAY_MAPPING.md).
+The earlier `384x192` experiment was a service diagnostic and is not the
+current default.
 
-1. Apply wall power.
+## What This Repository Is For
+
+In the language of the conservation article, this repository is a versioned
+manual, BoM, dependency record, and time capsule. It is meant for a future
+technician, conservator, installer, or collector who needs to understand what
+must stay fixed and what can be replaced.
+
+| File or folder | Role in the artwork package |
+|---|---|
+| `src/controller/` | Python controller for GPIO, state, relay, services, and UPS shutdown |
+| `config/controller.yaml` | Verified live controller configuration |
+| `kiosk-app/` | Static Conway Garden web app and point cloud assets |
+| `kiosk/` | Chromium kiosk service and start script |
+| `systemd/` | Main controller systemd unit |
+| `system/` | Snapshots of live system configuration from the Pi |
+| `health/` | Daily health record used for later diagnosis |
+| `control/` | `conway-ctl`, a service tool for live app tuning |
+| [CONSERVATION.md](CONSERVATION.md) | Full manual: narrative, setup, maintenance, preservation, migration |
+| [HARDWARE_BOM.md](HARDWARE_BOM.md) | Component list with replacement notes |
+| [DISPLAY_MAPPING.md](DISPLAY_MAPPING.md) | Current NovaStar and Chromium mapping record |
+| [NETWORKING.md](NETWORKING.md) | Direct Ethernet service plan |
+| [SYSTEM_AUDIT.md](SYSTEM_AUDIT.md) | Live Pi audit and cleanup notes |
+| [RECOVERY.md](RECOVERY.md) | Blank SD card recovery procedure |
+
+## Operation
+
+Normal operation is physical.
+
+1. Apply wall power to the box.
 2. Wait for the Pi to boot.
-3. Press START to power the display and launch Chromium.
-4. Press STOP to turn the display off.
-5. To remove wall power, use the normal power switch or unplug. If power is
-   lost unexpectedly, the UPS shutdown path handles the Pi safely.
+3. Press START to power the display and launch the garden.
+4. Press STOP to turn off the display side.
+5. If wall power is removed unexpectedly, leave the UPS shutdown path alone.
+   The Pi will halt after the 10 second confirmation window.
 
-For diagnostics:
+Useful service commands:
 
 ```bash
 ssh pi@conway-garden-1
@@ -52,31 +79,12 @@ journalctl -u matrix-controller -n 100 --no-pager
 journalctl -u matrix-led -n 100 --no-pager
 ```
 
-## Repository Layout
+## Installed Paths
 
-| Path | Purpose |
-|---|---|
-| `src/controller/` | Python daemon: GPIO, state machine, UPS shutdown, service control |
-| `config/controller.yaml` | Verified controller config copied from `/etc/matrix-controller/controller.yaml` |
-| `systemd/` | `matrix-controller.service` source |
-| `kiosk/` | Kiosk systemd unit and Chromium start script |
-| `kiosk-app/` | Static web app served from `/home/pi/Desktop/conway.pointcloud.garden/` |
-| `health/` | Daily health snapshot script and systemd timer |
-| `system/` | Live system config snapshots from `/etc`, `/boot/firmware`, Chromium, SSH, journald, logrotate |
-| `scripts/` | Install/bootstrap scripts |
-| `control/` | `conway-ctl` Chrome DevTools helper for live app tuning |
-| `CONSERVATION.md` | Long-form conservation and maintenance manual |
-| `HARDWARE_BOM.md` | Current BoM with replaceability notes |
-| `DISPLAY_MAPPING.md` | Verified NovaStar / Chromium mapping notes |
-| `NETWORKING.md` | Direct Ethernet SSH and Wi-Fi removal plan |
-| `SYSTEM_AUDIT.md` | Current system audit and cleanup notes |
-| `RECOVERY.md` | Blank-SD-card recovery procedure |
+The live Pi uses stable paths so the installation can be serviced without
+guessing where the active files are.
 
-## Live Pi Paths
-
-The runtime paths are intentionally stable:
-
-| Live path | Source in this repo |
+| Live path | Source in this repository |
 |---|---|
 | `/etc/matrix-controller/controller.yaml` | `config/controller.yaml` |
 | `/usr/local/lib/python3.11/dist-packages/controller/` | `src/controller/` |
@@ -86,35 +94,37 @@ The runtime paths are intentionally stable:
 | `/home/pi/Desktop/conway.pointcloud.garden/` | `kiosk-app/` |
 | `/usr/local/bin/conway-health.sh` | `health/conway-health.sh` |
 
-## Hardware Summary
+## Hardware And Replacement Logic
 
-Core hardware:
+The BoM is not just a shopping list. It records the function of each part and
+whether a future replacement must be exact or only functionally equivalent.
 
-- Raspberry Pi 5
-- Geekworm X1201 UPS HAT with Samsung 30Q cells
-- MEAN WELL LRS-150F display PSU
-- LCLCTC DIN rail solid-state relay
-- APIELE momentary push buttons
-- GPIO screw-terminal breakout
-- Blue Sea Systems 5025 fuse block and ATC blade fuse
-- NovaStar MSD300-1 sender and MRV412 receiver card
-- LED panels driven by the NovaStar chain
+The core runtime hardware is a Raspberry Pi 5, Geekworm X1201 UPS HAT with
+Samsung 30Q cells, MEAN WELL LRS-150F display PSU, LCLCTC DIN rail solid state
+relay, APIELE momentary buttons, a GPIO terminal breakout, a Blue Sea fuse
+block, a NovaStar MSD300-1 sender, a NovaStar MRV412 receiver, and the LED
+panel chain.
 
-See `HARDWARE_BOM.md` for the full supply list and notes on what can be
-substituted.
+The Pi, fuse block, buttons, wiring hardware, and power supply can be replaced
+with equivalent parts if their electrical role is preserved. The NovaStar
+sender, receiver, and LED mapping are more sensitive. Replacing them requires
+exporting or rebuilding the mapping and then updating [DISPLAY_MAPPING.md](DISPLAY_MAPPING.md).
 
-## GPIO Map
+See [HARDWARE_BOM.md](HARDWARE_BOM.md) for the full supply list and the
+superseded notes from the earlier spreadsheet.
 
-Pin numbers are BCM GPIO numbers.
+## GPIO And Power
+
+GPIO numbers are BCM numbers.
 
 | Function | GPIO | Header pin | Behavior |
 |---|---:|---:|---|
 | START button | 18 | 12 | Press pulls LOW to GND |
 | STOP button | 19 | 35 | Press pulls LOW to GND |
-| Relay/SSR control | 20 | 38 | Active high |
-| X1201 PLD power-loss detect | 6 | 31 | HIGH = wall power OK, LOW = wall power lost |
+| Relay control | 20 | 38 | Active high |
+| X1201 PLD power loss detect | 6 | 31 | HIGH means wall power, LOW means wall power lost |
 
-Current controller config:
+Current UPS configuration:
 
 ```yaml
 ups:
@@ -126,7 +136,7 @@ ups:
 
 ## Display Mapping
 
-The working app mapping is:
+The working app geometry is:
 
 ```text
 canvas.width = 312
@@ -137,16 +147,14 @@ rotation = 90
 pointSize = 1
 ```
 
-Chromium runs in a 1920x1080 kiosk window. The artist app's canvas is rotated
-into a 416x312 source rectangle. Do not return to the earlier guessed
-`384x192` mapping unless the NovaStar sender/receiver mapping is rebuilt and
-reverified.
+Chromium runs as a 1920x1080 kiosk window. The app canvas is rotated into a
+416x312 source rectangle that matches the corrected sender card mapping. Do
+not return to the older guessed `384x192` mapping unless the NovaStar mapping
+is intentionally rebuilt and tested.
 
-See `DISPLAY_MAPPING.md`.
+## Restore From This Read Me
 
-## Install Or Restore
-
-Fresh Pi:
+On a fresh Raspberry Pi OS Bookworm 64 bit Desktop install:
 
 ```bash
 sudo apt update
@@ -156,7 +164,7 @@ cd conway-garden-controller
 sudo bash scripts/bootstrap.sh
 ```
 
-After install, verify:
+After install:
 
 ```bash
 systemctl status matrix-controller
@@ -164,40 +172,52 @@ systemctl status conway-health.timer
 sudo pinctrl get 6
 ```
 
-See `RECOVERY.md` for the full blank-card process.
+Expected result: the controller is active, the health timer is active, and
+GPIO 6 reads HIGH while wall power is connected.
 
-## Safe Change Workflow
+The longer blank card procedure is in [RECOVERY.md](RECOVERY.md).
 
-1. Make changes in Git on a development machine.
-2. Commit and push.
-3. Pull on the Pi or deploy the specific files.
-4. Restart only the service that needs it.
-5. Verify logs and physical behavior.
-6. Update docs and make a new gold image after deliberate changes.
+## Versioning And Migration
 
-Do not casually run system upgrades, change `/boot/firmware/config.txt`, or
-alter NovaStar mapping without documenting and testing the result.
+Git is the version record for this piece. Every deliberate change to the
+controller, kiosk app, wiring assumptions, display mapping, system files, or
+manual should be committed with enough context that a future conservator can
+understand why the work changed.
 
-## Direct Ethernet SSH Target
+The point is not to fossilize one incidental computer setup forever. The point
+is to keep the work performable while preserving the behavior that matters:
+the garden image, the display scale, the power sequence, the safe shutdown
+path, the physical controls, and the documented hardware relationships.
 
-The client wants the Pi off Wi-Fi. The safe migration plan is:
+After a verified deployment, make a tag and create a gold SD card image. Store
+that image with the collector box, along with wiring photos, the BoM, spare
+fuses, spare cables, and any exported NovaStar configuration.
 
-1. Add a static Ethernet profile on Pi `eth0`: `10.55.0.2/24`.
-2. Configure the Mac USB Ethernet adapter manually: `10.55.0.1/24`.
-3. Verify `ssh pi@10.55.0.2`.
-4. Disable Wi-Fi autoconnect on the Pi only after Ethernet SSH works.
+## Direct Ethernet Service
 
-See `NETWORKING.md`.
+The target handoff state is service access over Ethernet, with the Pi not
+joined to a wireless network. The planned static service subnet is:
 
-## Status Snapshot From 2026-05-15
+```text
+Mac USB Ethernet: 10.55.0.1/24
+Pi eth0:          10.55.0.2/24
+```
 
-- OS: Debian Bookworm / Raspberry Pi OS 64-bit
-- Kernel: `6.12.62+rpt-rpi-2712`
-- Python: `3.11.2`
-- Chromium: `145.0.7632.116`
-- Tailscale: `1.98.1`
-- Disk usage: about 15 percent on `/`
-- Health timer: active
-- Controller source and installed controller package matched by SHA-256
+First verify:
 
-See `SYSTEM_AUDIT.md` for details and cleanup recommendations.
+```bash
+ssh pi@10.55.0.2
+```
+
+Only after that works should wireless autoconnect be disabled. The detailed
+procedure is in [NETWORKING.md](NETWORKING.md).
+
+## Verified Snapshot
+
+The 2026-05-15 audit recorded Debian Bookworm on Raspberry Pi OS, kernel
+`6.12.62+rpt-rpi-2712`, Python `3.11.2`, Chromium `145.0.7632.116`, Tailscale
+`1.98.1`, about 15 percent disk usage on `/`, an active health timer, and a
+controller package that matched the source snapshot by SHA-256.
+
+See [SYSTEM_AUDIT.md](SYSTEM_AUDIT.md) for the complete audit and cleanup
+notes.
