@@ -195,22 +195,28 @@ fuses, spare cables, and any exported NovaStar configuration.
 
 ## Direct Ethernet Service
 
-The target handoff state is service access over Ethernet, with the Pi not
-joined to a wireless network. The planned static service subnet is:
+Direct Ethernet SSH has been verified from Reid's Mac to the Pi. The service
+subnet is:
 
 ```text
 Mac USB Ethernet: 10.55.0.1/24
 Pi eth0:          10.55.0.2/24
 ```
 
-First verify:
+Use:
 
 ```bash
 ssh pi@10.55.0.2
 ```
 
-Only after that works should wireless autoconnect be disabled. The detailed
-procedure is in [NETWORKING.md](NETWORKING.md).
+Wi-Fi and Tailscale were intentionally left enabled as fallbacks during
+testing. Turning Wi-Fi off is a separate handoff step and should only happen
+when someone is physically present with working Ethernet SSH.
+
+Mac Internet Sharing has not been proven for this installation. For service
+updates, the preferred path is to push the release bundle from the Mac to the
+Pi over the verified Ethernet SSH link. The detailed procedure is in
+[NETWORKING.md](NETWORKING.md).
 
 ## Verified Snapshot
 

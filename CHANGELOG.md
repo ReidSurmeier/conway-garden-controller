@@ -16,6 +16,8 @@
 - Rewrote documentation around verified current behavior and conservation
   framework.
 - Added BoM, display mapping, networking, and system audit documents.
+- Verified direct Ethernet SSH from Reid's Mac at `10.55.0.1` to Pi eth0 at
+  `10.55.0.2`; Wi-Fi and Tailscale remain enabled as fallbacks.
 
 ## Earlier
 
