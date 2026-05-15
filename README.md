@@ -194,7 +194,18 @@ that image with the collector box, along with wiring photos, the BoM, spare
 fuses, spare cables, and any exported NovaStar configuration.
 
 ## Direct Ethernet Service Guide
+Public key installed/usable for the Pi:
 
+  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPM95dG/Uh/ahwRhL3S+bMUGTX6PNQSn32TBYQjry66n mac-to-linux
+
+  Fingerprint:
+
+  SHA256:K8pHQcmDjTLl30NpamfcCzXNNs82qKyNVQWPEzvzzLE
+
+  Verified command:
+
+  ssh -i ~/.ssh/linux_desktop pi@10.55.0.2
+  
 Use the Ethernet cable as the service connection between a technician's Mac
 and the Pi. This path has been verified with the Pi reachable at
 `10.55.0.2`.
