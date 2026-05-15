@@ -1,4 +1,4 @@
-# Conway Pointcloud Garden
+# Conway Pointcloud Garden (version 1)
 
 Artist: Clement Valla. Engineer: Reid Surmeier. Current verified state:
 2026-05-15. Host name: `conway-garden-1`.
