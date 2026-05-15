@@ -1,274 +1,203 @@
+# Conway Pointcloud Garden
 
-**Author:** Reid Surmeier
-**Client:** Clement Valla
-**Date:** 2026 Feb 16th
+**Artist:** Clement Valla
+**Engineer:** Reid Surmeier
+**Current verified state:** 2026-05-15
+**Host name:** `conway-garden-1`
 
----
+This repository is the software, configuration, and conservation package for
+the Conway Pointcloud Garden media-art installation. A Raspberry Pi 5 runs a
+browser-based point-cloud visualization, controls display power through a
+relay/SSR, and shuts down safely when wall power is lost.
 
-# Matrix Controller
+The documentation follows the conservation approach described in Rafael
+Lozano-Hemmer's *Best practices for conservation of media art from an artist's
+perspective*: the code, configuration, media assets, wiring notes, BoM, and
+operating instructions are treated as the artwork's executable score.
 
-Raspberry Pi 5 daemon that runs an LED matrix. Handles PSU power switching through a relay, starts and stops the rendering service, and shuts down safely when the UPS loses mains power.
+Reference: https://github.com/mccoyspace/Best-practices-for-conservation-of-media-art
 
-Two physical buttons control everything. Start turns the matrix on. Stop turns it off. If someone pulls the wall plug, the UPS keeps the Pi alive long enough to halt cleanly.
+## Current Verified Behavior
 
-## What it does
+- START button turns on the display power relay and starts `matrix-led.service`.
+- STOP button stops `matrix-led.service` and turns the display relay off.
+- STOP does not shut down the Pi.
+- Geekworm X1201 PLD on BCM GPIO 6 detects wall-power loss.
+- If wall power is lost for 10 sustained seconds, the Pi performs a systemd
+  safe shutdown through the UPS.
+- On boot, the relay is forced off and the display service is stopped.
+- SSH is currently available through Wi-Fi/Tailscale; the target handoff state
+  is direct Ethernet SSH with Pi Wi-Fi disabled.
+- Sender-card mapping is now working. The canonical app mapping is recorded in
+  `DISPLAY_MAPPING.md`.
 
-- Start/stop buttons control the LED matrix PSU and rendering service
-- UPS monitors mains power and triggers a safe shutdown if power drops
-- State machine keeps track of IDLE, RUNNING, and EMERGENCY_SHUTDOWN
-- On boot the relay is always forced OFF and the service is stopped
-- Pressing buttons multiple times won't break anything
-- Dry-run mode lets you test without touching hardware
+## Operator Use
 
-## Hardware
+Normal operation is physical:
 
-| Part | Purpose |
-|------|---------|
-| Raspberry Pi 5 | Runs the daemon |
-| LED Matrix PSU (MEAN WELL LRS-150F) | Powers the LED matrix |
-| 2x push buttons (APIELE) | Start and stop |
-| UPS HAT (Geekworm X1201) | Battery backup and power-loss detection |
-| GPIO Screw Terminal Block Breakout | Clean wiring to Pi header |
-| Relay/SSR (LCLCTC Din Rail) | Switches PSU power on and off |
-| Blue Sea Systems 5025 fuse block | PSU fuse protection |
-| Circuit breaker | Overcurrent protection |
+1. Apply wall power.
+2. Wait for the Pi to boot.
+3. Press START to power the display and launch Chromium.
+4. Press STOP to turn the display off.
+5. To remove wall power, use the normal power switch or unplug. If power is
+   lost unexpectedly, the UPS shutdown path handles the Pi safely.
 
-## Wiring
-
-### Buttons
-
-Start button goes between GPIO 18 and GND. Stop button goes between GPIO 19 and GND. Internal pull-ups are enabled so pressing a button pulls the pin low.
-
-### Relay
-
-Relay control wire goes to GPIO 20. Default is active-high, meaning HIGH turns the relay on and LOW turns it off. This is configurable in the YAML if your relay works the other way around.
-
-### UPS HAT
-
-The Geekworm X1201 provides a signal when mains power is lost. Wire that signal to GPIO 21. Default config expects the signal to go HIGH when power is lost (rising edge). Check your specific UPS HAT documentation to confirm which pin it uses and whether the signal is active-high or active-low.
-
-### Power distribution
-
-Terminal blocks and a circuit breaker sit between the MEAN WELL PSU and the LED matrix. The Blue Sea fuse block protects individual runs. The relay sits between the PSU output and the matrix so the daemon can cut power cleanly.
-
-## Getting started
-
-Clone or copy this repo to your Pi 5 and run the installer:
+For diagnostics:
 
 ```bash
-sudo bash scripts/install.sh
+ssh pi@conway-garden-1
+systemctl status matrix-controller
+systemctl status matrix-led
+journalctl -u matrix-controller -n 100 --no-pager
+journalctl -u matrix-led -n 100 --no-pager
 ```
 
-This installs Python dependencies, copies the config to `/etc/matrix-controller/controller.yaml`, installs the Python package, and enables the systemd service.
+## Repository Layout
 
-Edit the config to match your wiring:
+| Path | Purpose |
+|---|---|
+| `src/controller/` | Python daemon: GPIO, state machine, UPS shutdown, service control |
+| `config/controller.yaml` | Verified controller config copied from `/etc/matrix-controller/controller.yaml` |
+| `systemd/` | `matrix-controller.service` source |
+| `kiosk/` | Kiosk systemd unit and Chromium start script |
+| `kiosk-app/` | Static web app served from `/home/pi/Desktop/conway.pointcloud.garden/` |
+| `health/` | Daily health snapshot script and systemd timer |
+| `system/` | Live system config snapshots from `/etc`, `/boot/firmware`, Chromium, SSH, journald, logrotate |
+| `scripts/` | Install/bootstrap scripts |
+| `control/` | `conway-ctl` Chrome DevTools helper for live app tuning |
+| `CONSERVATION.md` | Long-form conservation and maintenance manual |
+| `HARDWARE_BOM.md` | Current BoM with replaceability notes |
+| `DISPLAY_MAPPING.md` | Verified NovaStar / Chromium mapping notes |
+| `NETWORKING.md` | Direct Ethernet SSH and Wi-Fi removal plan |
+| `SYSTEM_AUDIT.md` | Current system audit and cleanup notes |
+| `RECOVERY.md` | Blank-SD-card recovery procedure |
 
-```bash
-sudo nano /etc/matrix-controller/controller.yaml
-```
+## Live Pi Paths
 
-Test with dry-run first (no GPIO, no relay, just logs):
+The runtime paths are intentionally stable:
 
-```bash
-sudo python3 -m controller.main --config /etc/matrix-controller/controller.yaml --dry-run
-```
+| Live path | Source in this repo |
+|---|---|
+| `/etc/matrix-controller/controller.yaml` | `config/controller.yaml` |
+| `/usr/local/lib/python3.11/dist-packages/controller/` | `src/controller/` |
+| `/etc/systemd/system/matrix-controller.service` | `systemd/matrix-controller.service` |
+| `/etc/systemd/system/matrix-led.service` | `kiosk/matrix-led.service` |
+| `/home/pi/Desktop/matrix-led-start.sh` | `kiosk/matrix-led-start.sh` |
+| `/home/pi/Desktop/conway.pointcloud.garden/` | `kiosk-app/` |
+| `/usr/local/bin/conway-health.sh` | `health/conway-health.sh` |
 
-Start the service for real:
+## Hardware Summary
 
-```bash
-sudo systemctl start matrix-controller
-```
+Core hardware:
 
-Watch the logs:
+- Raspberry Pi 5
+- Geekworm X1201 UPS HAT with Samsung 30Q cells
+- MEAN WELL LRS-150F display PSU
+- LCLCTC DIN rail solid-state relay
+- APIELE momentary push buttons
+- GPIO screw-terminal breakout
+- Blue Sea Systems 5025 fuse block and ATC blade fuse
+- NovaStar MSD300-1 sender and MRV412 receiver card
+- LED panels driven by the NovaStar chain
 
-```bash
-journalctl -u matrix-controller -f
-```
+See `HARDWARE_BOM.md` for the full supply list and notes on what can be
+substituted.
 
-## Config
+## GPIO Map
 
-The config lives at `/etc/matrix-controller/controller.yaml`:
+Pin numbers are BCM GPIO numbers.
+
+| Function | GPIO | Header pin | Behavior |
+|---|---:|---:|---|
+| START button | 18 | 12 | Press pulls LOW to GND |
+| STOP button | 19 | 35 | Press pulls LOW to GND |
+| Relay/SSR control | 20 | 38 | Active high |
+| X1201 PLD power-loss detect | 6 | 31 | HIGH = wall power OK, LOW = wall power lost |
+
+Current controller config:
 
 ```yaml
-buttons:
-  start_pin: 18
-  stop_pin: 19
-  debounce_ms: 80
-
-relay:
-  pin: 20
-  active_high: true
-
 ups:
-  mode: "gpio"        # set to "disabled" if no UPS
-  mains_lost_pin: 21
-  edge: "rising"
-
-led_service:
-  name: "matrix-led.service"
-
-logging:
-  level: "INFO"
+  mode: "gpio"
+  mains_lost_pin: 6
+  edge: "falling"
+  shutdown_delay_s: 10
 ```
 
-Pin numbers are BCM GPIO numbers, not physical pin numbers. Debounce is in milliseconds.
+## Display Mapping
 
-## How it works
+The working app mapping is:
 
-### Boot
+```text
+canvas.width = 312
+canvas.height = 416
+xOffset = 416
+yOffset = 0
+rotation = 90
+pointSize = 1
+```
 
-When the Pi boots, the daemon starts automatically and:
+Chromium runs in a 1920x1080 kiosk window. The artist app's canvas is rotated
+into a 416x312 source rectangle. Do not return to the earlier guessed
+`384x192` mapping unless the NovaStar sender/receiver mapping is rebuilt and
+reverified.
 
-1. Forces relay OFF
-2. Stops `matrix-led.service` if it was running
-3. Sits in IDLE waiting for a button press
+See `DISPLAY_MAPPING.md`.
 
-The matrix is always off after a reboot until someone presses start.
+## Install Or Restore
 
-### Start button
-
-Only works when idle. Turns the relay on, starts the LED rendering service, moves to RUNNING. If you press it while already running, nothing happens.
-
-### Stop button
-
-Only works when running. Stops the LED service, turns the relay off, goes back to IDLE. If you press it while already idle, nothing happens.
-
-### UPS power loss
-
-Works from any state. If the UPS signals that mains power is gone:
-
-1. Stops the LED service
-2. Turns relay off
-3. Runs `shutdown -h now`
-
-This is the only thing that actually shuts down the Pi. The stop button just turns off the matrix.
-
-### Watchdog
-
-Every 5 seconds the daemon checks that reality matches the state machine. If the state says RUNNING but the service crashed, it turns the relay off and goes back to IDLE. If the state says IDLE but the relay is somehow on, it forces it off.
-
-## Testing on hardware
-
-### Test the buttons
+Fresh Pi:
 
 ```bash
-python3 -c "
-from gpiozero import Button
-from gpiozero.pins.lgpio import LGPIOFactory
-b = Button(18, pin_factory=LGPIOFactory(), pull_up=True)
-print('Press start button...')
-b.wait_for_press()
-print('Got it')
-"
+sudo apt update
+sudo apt install -y git
+git clone https://github.com/ReidSurmeier/conway-garden-controller.git
+cd conway-garden-controller
+sudo bash scripts/bootstrap.sh
 ```
 
-### Test the relay
+After install, verify:
 
 ```bash
-python3 -c "
-from gpiozero import OutputDevice
-from gpiozero.pins.lgpio import LGPIOFactory
-r = OutputDevice(20, pin_factory=LGPIOFactory(), active_high=True)
-r.on()
-input('Relay should be ON. Press enter to turn off...')
-r.off()
-print('Done')
-"
+systemctl status matrix-controller
+systemctl status conway-health.timer
+sudo pinctrl get 6
 ```
 
-### Test the full flow
+See `RECOVERY.md` for the full blank-card process.
 
-1. Start the service: `sudo systemctl start matrix-controller`
-2. Press start button, check relay is on and `matrix-led.service` is running
-3. Press stop button, check relay is off and service stopped
-4. Reboot, confirm everything comes up in IDLE with relay off
+## Safe Change Workflow
 
-### Test UPS shutdown
+1. Make changes in Git on a development machine.
+2. Commit and push.
+3. Pull on the Pi or deploy the specific files.
+4. Restart only the service that needs it.
+5. Verify logs and physical behavior.
+6. Update docs and make a new gold image after deliberate changes.
 
-Unplug the wall power with the system running. The UPS should keep the Pi alive while it halts. Check the journal after powering back on:
+Do not casually run system upgrades, change `/boot/firmware/config.txt`, or
+alter NovaStar mapping without documenting and testing the result.
 
-```bash
-journalctl -u matrix-controller -b -1
-```
+## Direct Ethernet SSH Target
 
-You should see the "UPS power-loss detected" log followed by the shutdown sequence.
+The client wants the Pi off Wi-Fi. The safe migration plan is:
 
-## Troubleshooting
+1. Add a static Ethernet profile on Pi `eth0`: `10.55.0.2/24`.
+2. Configure the Mac USB Ethernet adapter manually: `10.55.0.1/24`.
+3. Verify `ssh pi@10.55.0.2`.
+4. Disable Wi-Fi autoconnect on the Pi only after Ethernet SSH works.
 
-**Service won't start** -- check that the config file exists at `/etc/matrix-controller/controller.yaml` and look at the logs with `journalctl -u matrix-controller -n 50`. Make sure no other process is using the same GPIO pins.
+See `NETWORKING.md`.
 
-**Buttons don't do anything** -- double check that the button wires go between the correct GPIO pin and GND. Use the button test script above to verify the hardware works before blaming the daemon.
+## Status Snapshot From 2026-05-15
 
-**Relay clicks but matrix doesn't turn on** -- check the wiring between the relay output and the PSU. Verify `active_high` in the config matches your relay module. Some relays are active-low.
+- OS: Debian Bookworm / Raspberry Pi OS 64-bit
+- Kernel: `6.12.62+rpt-rpi-2712`
+- Python: `3.11.2`
+- Chromium: `145.0.7632.116`
+- Tailscale: `1.98.1`
+- Disk usage: about 15 percent on `/`
+- Health timer: active
+- Controller source and installed controller package matched by SHA-256
 
-**UPS doesn't trigger shutdown** -- make sure `ups.mode` is set to `"gpio"` and not `"disabled"`. Verify the pin number matches your UPS HAT. Check whether your HAT signal is rising or falling edge on power loss.
-
-**Service keeps restarting** -- the systemd unit is set to `Restart=always` with a 10 second delay. If it crashes on startup (bad config, GPIO conflict), it will keep retrying. Fix the root cause in the logs.
-
-## Project layout
-
-```
-matrix-controller/
-  src/controller/
-    __init__.py          -- package init
-    main.py              -- daemon entrypoint and event loop
-    state_machine.py     -- IDLE / RUNNING / EMERGENCY_SHUTDOWN states
-    gpio.py              -- button and relay GPIO control (lgpio backend)
-    led_service.py       -- systemctl wrapper for matrix-led.service
-    ups.py               -- UPS power-loss monitoring
-  config/
-    controller.yaml      -- default config
-  systemd/
-    matrix-controller.service  -- systemd unit file
-  scripts/
-    install.sh           -- installer
-  README.md
-```
-
-## Dependencies
-
-- Python 3.11+
-- gpiozero with lgpio backend (Pi 5 requires lgpio, not RPi.GPIO)
-- pyyaml
-- python3-lgpio (system package, should already be on Raspberry Pi OS Bookworm)
-
-## Safety
-
-The controller always turns the relay off before doing anything else during shutdown or error recovery. On boot the relay is forced off. The watchdog catches state mismatches every 5 seconds.
-
-Test with dry-run mode before connecting live hardware. Verify your UPS wiring carefully since a wrong edge setting could trigger a shutdown when power is fine. Use the fuse block and circuit breaker to protect the PSU and matrix from overcurrent.
-
----
-
-```
-      RSRSRSRSba   RSRSRSRSRS8  RS  RSRSRSRSba,
-      RS      "8b  RS           RS  RS      `"8b
-      RS      ,8P  RS           RS  RS        `8b
-      RSaaaaaa8P'  RSaaaaa      RS  RS         RS
-      RS""""RS'    RS"""""      RS  RS         RS
-      RS    `8b    RS           RS  RS         8P
-      RS     `8b   RS           RS  RS      .a8P
-      RS      `8b  RSRSRSRSRS8  RS  RSRSRSRSY"'
-
-
-       adRSRS8ba   RS        RS  RSRSRSRSba   RSb           dRS  RSRSRSRSRS8  RS  RSRSRSRSRS8  RSRSRSRSba
-      d8"     "8b  RS        RS  RS      "8b  RS8b         dRS8  RS           RS  RS           RS      "8b
-      Y8,          RS        RS  RS      ,8P  RS`8b       d8'RS  RS           RS  RS           RS      ,8P
-      `Y8aaaaa,    RS        RS  RSaaaaaa8P'  RS `8b     d8' RS  RSaaaaa      RS  RSaaaaa      RSaaaaaa8P'
-        `"""""8b,  RS        RS  RS""""RS'    RS  `8b   d8'  RS  RS"""""      RS  RS"""""      RS""""RS'
-              `8b  RS        RS  RS    `8b    RS   `8b d8'   RS  RS           RS  RS           RS    `8b
-      Y8a     a8P  Y8a.    .a8P  RS     `8b   RS    `RS8'    RS  RS           RS  RS           RS     `8b
-       "YRSRS8P"    `"YRSRSY"'   RS      `8b  RS     `8'     RS  RSRSRSRSRS8  RS  RSRSRSRSRS8  RS      `8b
-
-
-       I8,        8        ,8I  RSRSRSRSRSRS  RSRSRSRSRS8
-       `8b       d8b       d8'       RS       RS
-        "8,     ,8"8,     ,8"        RS       RS
-         Y8     8P Y8     8P         RS       RSaaaaa
-         `8b   d8' `8b   d8'         RS       RS"""""
-          `8a a8'   `8a a8'          RS       RS
-      RS8  `8a8'     `8a8'           RS       RS
-      RS8   `8'       `8'            RS       RS
-```
-
-(graphic design and programming by Reid Surmeier)
+See `SYSTEM_AUDIT.md` for details and cleanup recommendations.

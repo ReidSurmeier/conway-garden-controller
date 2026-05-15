@@ -15,7 +15,7 @@ class UPSController:
     
     def __init__(self, mode: str = "disabled", pin: Optional[int] = None,
                  edge: str = "rising", callback: Optional[Callable[[], None]] = None,
-                 dry_run: bool = False):
+                 shutdown_delay_s: float = 10.0, dry_run: bool = False):
         """
         Initialize UPS controller.
         
@@ -24,6 +24,7 @@ class UPSController:
             pin: GPIO pin number (required if mode="gpio")
             edge: "rising" or "falling" edge to trigger shutdown
             callback: Function to call when power loss detected
+            shutdown_delay_s: Seconds power loss must remain asserted before shutdown
             dry_run: If True, log actions instead of executing
         """
         self.mode = mode
@@ -34,8 +35,11 @@ class UPSController:
             if pin is None:
                 raise ValueError("UPS pin must be specified when mode='gpio'")
             
-            self.monitor = UPSMonitor(pin, edge, callback)
-            logger.info(f"UPS monitoring enabled: pin={pin}, edge={edge}")
+            self.monitor = UPSMonitor(pin, edge, callback, shutdown_delay_s)
+            logger.info(
+                "UPS monitoring enabled: pin=%s, edge=%s, shutdown_delay_s=%.1f",
+                pin, edge, shutdown_delay_s
+            )
         elif mode == "disabled":
             logger.info("UPS monitoring disabled")
         else:

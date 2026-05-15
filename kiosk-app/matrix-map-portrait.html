@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portrait Matrix Mapping Test</title>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    canvas {
+      position: absolute;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      transform-origin: top left;
+    }
+
+    .hud {
+      position: fixed;
+      left: 8px;
+      bottom: 8px;
+      z-index: 10;
+      padding: 6px 8px;
+      background: rgba(0, 0, 0, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+      line-height: 1.35;
+      white-space: pre;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="grid" width="312" height="416"></canvas>
+  <div class="hud" id="hud"></div>
+
+  <script>
+    const MODES = {
+      "orig-rot90": {
+        title: "original app geometry: 312x416, x=416, rot=90",
+        logicalWidth: 312,
+        logicalHeight: 416,
+        cssWidth: 312,
+        cssHeight: 416,
+        left: 416,
+        top: 0,
+        rotation: 90
+      },
+      "native": {
+        title: "native portrait: 312x416, no rotation",
+        logicalWidth: 312,
+        logicalHeight: 416,
+        cssWidth: 312,
+        cssHeight: 416,
+        left: 0,
+        top: 0,
+        rotation: 0
+      },
+      "orig-2x": {
+        title: "original geometry at 2x scale, x=832, rot=90",
+        logicalWidth: 312,
+        logicalHeight: 416,
+        cssWidth: 624,
+        cssHeight: 832,
+        left: 832,
+        top: 0,
+        rotation: 90
+      }
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const modeName = params.get("mode") || "orig-rot90";
+    const mode = MODES[modeName] || MODES["orig-rot90"];
+    const canvas = document.getElementById("grid");
+    const ctx = canvas.getContext("2d", { alpha: false });
+    const hud = document.getElementById("hud");
+
+    function draw() {
+      canvas.width = mode.logicalWidth;
+      canvas.height = mode.logicalHeight;
+      canvas.style.width = `${mode.cssWidth}px`;
+      canvas.style.height = `${mode.cssHeight}px`;
+      canvas.style.left = `${mode.left}px`;
+      canvas.style.top = `${mode.top}px`;
+      canvas.style.transform = `rotate(${mode.rotation}deg)`;
+
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, mode.logicalWidth, mode.logicalHeight);
+
+      const cols = 3;
+      const rows = 4;
+      const cellW = mode.logicalWidth / cols;
+      const cellH = mode.logicalHeight / rows;
+      const colors = [
+        "#1d4ed8", "#047857", "#b45309",
+        "#be123c", "#6d28d9", "#0f766e",
+        "#ca8a04", "#2563eb", "#9333ea",
+        "#7f1d1d", "#164e63", "#365314"
+      ];
+
+      for (let row = 0; row < rows; row += 1) {
+        for (let col = 0; col < cols; col += 1) {
+          const x = col * cellW;
+          const y = row * cellH;
+          ctx.fillStyle = colors[row * cols + col];
+          ctx.fillRect(x, y, cellW, cellH);
+          ctx.strokeStyle = "#fff";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x + 1, y + 1, cellW - 2, cellH - 2);
+          ctx.fillStyle = "#fff";
+          ctx.font = "bold 14px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(`R${row + 1} C${col + 1}`, x + cellW / 2, y + cellH / 2 - 8);
+          ctx.font = "10px Arial";
+          ctx.fillText(`${Math.round(x)},${Math.round(y)}`, x + cellW / 2, y + cellH / 2 + 10);
+        }
+      }
+
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(2, 2, mode.logicalWidth - 4, mode.logicalHeight - 4);
+      drawCorner(0, 0, "#ff0000", "TL");
+      drawCorner(mode.logicalWidth - 24, 0, "#00ff00", "TR");
+      drawCorner(0, mode.logicalHeight - 24, "#0000ff", "BL");
+      drawCorner(mode.logicalWidth - 24, mode.logicalHeight - 24, "#ffffff", "BR");
+
+      hud.textContent = [
+        `mode: ${modeName}`,
+        mode.title,
+        `canvas: ${mode.logicalWidth}x${mode.logicalHeight}`,
+        `CSS: ${mode.cssWidth}x${mode.cssHeight} at ${mode.left},${mode.top}`,
+        `rotation: ${mode.rotation}deg`
+      ].join("\n");
+    }
+
+    function drawCorner(x, y, color, label) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, 24, 24);
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, 23, 23);
+      ctx.fillStyle = color === "#ffffff" ? "#000" : "#fff";
+      ctx.font = "bold 10px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(label, x + 12, y + 12);
+    }
+
+    draw();
+  </script>
+</body>
+</html>

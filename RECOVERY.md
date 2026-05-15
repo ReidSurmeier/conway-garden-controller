@@ -1,80 +1,162 @@
-# Recovering from a corrupted SD card
+# Recovery Procedure
 
-This repo is the conservation backup for *Conway Pointcloud Garden* — if
-the deployed Pi's SD card fails, follow this procedure to rebuild from
-scratch on a fresh card. See `CONSERVATION.md` for the full operating
-manual.
+Use this when the SD card is corrupted, the Pi is replaced, or a future
+technician needs to rebuild Conway Pointcloud Garden from this repository.
 
-## What this repo contains
+## What This Repo Contains
 
-| Folder | What |
+| Path | Contents |
 |---|---|
-| `src/controller/` | The matrix-controller Python daemon (hardened build) |
-| `config/controller.yaml` | Default GPIO + behavior config |
-| `systemd/matrix-controller.service` | systemd unit (Type=notify, WatchdogSec=30) |
-| `kiosk/matrix-led-start.sh` | Kiosk launcher (HTTP server + Chromium) |
-| `kiosk/matrix-led.service` | Kiosk systemd unit |
-| `system/` | All `/etc/` config files (watchdog, journald, ssh, chromium, apt) |
-| `health/` | Daily health-check script + systemd timer |
-| `scripts/install.sh` | Original installer (apt deps + copy + enable) |
-| `scripts/bootstrap.sh` | Full re-install (calls install.sh + applies all hardening) |
-| `CONSERVATION.md` | Long-term operating manual (BoM, GPIO map, recovery, etc.) |
+| `src/controller/` | Python controller daemon |
+| `config/controller.yaml` | Verified GPIO, relay, UPS, and service config |
+| `kiosk-app/` | Static Conway Garden web app and point-cloud assets |
+| `kiosk/` | Chromium kiosk start script and `matrix-led.service` |
+| `systemd/` | `matrix-controller.service` |
+| `system/` | Snapshots of live `/etc` and `/boot/firmware` config |
+| `health/` | Daily health check script and timer |
+| `scripts/` | Install and bootstrap scripts |
+| `CONSERVATION.md` | Long-term operating manual |
+| `DISPLAY_MAPPING.md` | Verified sender/app mapping |
+| `NETWORKING.md` | Direct Ethernet SSH setup |
+| `HARDWARE_BOM.md` | BoM and replacement notes |
 
-## What this repo does NOT contain
+## What This Repo Does Not Contain
 
-- Authorized SSH keys. Add your conservator key to
-  `/home/pi/.ssh/authorized_keys` after restore.
-- Wi-Fi credentials. Configure via `raspi-config` or
-  `/etc/NetworkManager/system-connections/` after first boot.
-- Saved gold-image dd backups. See §6 of `CONSERVATION.md` for the
-  recommended dd workflow — clones should be stored separately, not in
-  this repo.
+- SSH private keys.
+- Client passwords.
+- Wi-Fi credentials.
+- NovaStar sender/receiver config export. Add this later if available.
+- Gold SD-card image. Store that separately.
 
-## Restore procedure (≈ 25 minutes)
+## Blank SD Card Recovery
 
-1. Flash **Raspberry Pi OS Bookworm 64-bit (Desktop)** to a fresh
-   A2-rated SD card (≥ 32 GB, industrial-grade preferred). Use the
-   Raspberry Pi Imager and pre-configure:
+1. Flash Raspberry Pi OS Bookworm 64-bit Desktop to a fresh A2 or
+   industrial-grade SD card.
+2. In Raspberry Pi Imager, preconfigure:
    - hostname: `conway-garden-1`
-   - username: `pi`
-   - SSH: enabled, with your public key
-   - Wi-Fi: museum network
-2. Boot the Pi. Wait for it to finish first-run setup.
-3. SSH in and:
-   ```bash
-   sudo apt update
-   sudo apt install -y git
-   git clone <this-repo-url> ~/conway-garden-controller
-   cd ~/conway-garden-controller
-   sudo bash scripts/bootstrap.sh
-   ```
-4. Restore the kiosk web app from your separate backup to
-   `/home/pi/Desktop/conway.pointcloud.garden/`.
-5. Reboot.
-6. Verify:
-   ```bash
-   systemctl status matrix-controller     # active, "Idle - waiting..."
-   journalctl -t conway-health -n 5       # should print one OK line
-   journalctl -k -b | grep -i watchdog    # should show bcm2835-wdt
-   ```
-7. Press the START button — Chromium should go full-screen on the kiosk
-   URL. Press STOP — Chromium and the relay should both go off.
+   - user: `pi`
+   - SSH enabled
+   - your public SSH key
+3. Boot the Pi.
+4. SSH in.
+5. Install Git and clone this repo:
 
-## On any future code change
-
-1. Edit on a development machine.
-2. Push to `main`.
-3. On the Pi: `cd ~/conway-garden-controller && git pull && sudo bash scripts/install.sh && sudo systemctl restart matrix-controller`.
-4. Verify with the smoke test above.
-5. Update the gold dd image (see `CONSERVATION.md` §6).
-
-## Pinning a known-good version
-
-After deploying a verified release, tag it:
 ```bash
-git tag -a v1.0-deployed-2026-04-29 -m "Deployed to museum"
-git push origin v1.0-deployed-2026-04-29
+sudo apt update
+sudo apt install -y git
+git clone https://github.com/ReidSurmeier/conway-garden-controller.git
+cd conway-garden-controller
 ```
-A future conservator can then `git checkout v1.0-deployed-2026-04-29`
-to get exactly the bits the artist last verified, regardless of any
-later changes on `main`.
+
+6. Bootstrap the controller, kiosk, hardening, and health timer:
+
+```bash
+sudo bash scripts/bootstrap.sh
+```
+
+7. Compare `/boot/firmware/config.txt` against
+   `system/boot-firmware-config.txt`. Apply the snapshot if the display does
+   not come up correctly and the hardware is the same as the verified install.
+
+8. Reboot:
+
+```bash
+sudo reboot
+```
+
+## Verification After Recovery
+
+After reboot:
+
+```bash
+systemctl status matrix-controller --no-pager
+systemctl status conway-health.timer --no-pager
+sudo pinctrl get 6
+```
+
+Expected:
+
+- `matrix-controller` active.
+- Controller status says idle/waiting.
+- `conway-health.timer` active.
+- GPIO6 reads HIGH when wall power is connected.
+
+Then press START:
+
+```bash
+systemctl status matrix-led --no-pager
+journalctl -u matrix-led -n 80 --no-pager
+```
+
+Expected:
+
+- Relay/display power turns on.
+- `matrix-led.service` active.
+- Chromium launches to `http://localhost:8000`.
+- Garden appears with the mapping documented in `DISPLAY_MAPPING.md`.
+
+Press STOP:
+
+- `matrix-led.service` stops.
+- Relay/display power turns off.
+- Pi remains powered/running.
+
+## UPS Shutdown Verification
+
+Only test this when the X1201 batteries are charged enough to keep the Pi alive
+while it halts.
+
+1. Confirm wall power state:
+
+```bash
+sudo pinctrl get 6
+```
+
+Expected on wall power: HIGH.
+
+2. Remove wall power.
+3. Wait at least 10 seconds.
+4. The Pi should halt cleanly.
+5. Restore wall power.
+6. Check previous boot logs:
+
+```bash
+journalctl -u matrix-controller -b -1 --no-pager | grep -i ups
+```
+
+## Direct Ethernet Recovery Access
+
+If Wi-Fi is disabled or unavailable, use the static direct-Ethernet plan in
+`NETWORKING.md`:
+
+```text
+Mac USB Ethernet: 10.55.0.1/24
+Pi eth0:          10.55.0.2/24
+```
+
+Then:
+
+```bash
+ssh pi@10.55.0.2
+```
+
+## Known-Good Release Tagging
+
+After a verified deployment:
+
+```bash
+git tag -a vYYYY.MM.DD-deployed -m "Verified deployment YYYY-MM-DD"
+git push origin vYYYY.MM.DD-deployed
+```
+
+## Gold Image
+
+After any deliberate change, make a new SD-card image and store it outside
+this repo:
+
+```bash
+sudo dd if=/dev/diskN of=conway-garden-gold-YYYY-MM-DD.img bs=4M status=progress
+xz -9 conway-garden-gold-YYYY-MM-DD.img
+```
+
+Verify the image by booting a spare card before relying on it.

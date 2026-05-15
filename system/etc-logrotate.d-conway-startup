@@ -1,5 +1,3 @@
-# Conservation: rotate the kiosk's startup log weekly, keep 8 weeks.
-# Install path: /etc/logrotate.d/conway-startup
 /home/pi/conway_startup.log {
     weekly
     rotate 8

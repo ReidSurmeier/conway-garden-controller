@@ -111,11 +111,16 @@ rm -f "$CHROMIUM_PROFILE/SingletonLock" \
       "$CHROMIUM_PROFILE/SingletonCookie" \
       "$CHROMIUM_PROFILE/SingletonSocket" 2>/dev/null || true
 
-log "Launching Chromium kiosk → http://localhost:$HTTP_PORT"
+KIOSK_URL="http://localhost:$HTTP_PORT/?v=$(date +%s)"
+log "Launching Chromium kiosk -> $KIOSK_URL"
 
 chromium-browser \
     --kiosk \
     --start-fullscreen \
+    --window-position=0,0 \
+    --window-size=1920,1080 \
+    --force-device-scale-factor=1 \
+    --high-dpi-support=1 \
     --noerrdialogs \
     --no-first-run \
     --no-default-browser-check \
@@ -137,7 +142,7 @@ chromium-browser \
     --remote-debugging-port=9222 \
     --remote-debugging-address=127.0.0.1 \
     --remote-allow-origins=http://127.0.0.1:9222,http://localhost:9222 \
-    "http://localhost:$HTTP_PORT" >/dev/null 2>&1 &
+    "$KIOSK_URL" >/dev/null 2>&1 &
 
 CHROME_PID=$!
 echo "$CHROME_PID" > "$CHROME_PIDFILE"

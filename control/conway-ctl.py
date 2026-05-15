@@ -13,7 +13,7 @@ USAGE
       conway-ctl get                     # dump all current values as JSON
       conway-ctl get "Point Size"        # read one value
       conway-ctl set "Point Size" 4      # write one value
-      conway-ctl set "Width" 480 "Height" 192    # write multiple
+      conway-ctl set "Set Width" 312 "Set Height" 416 "Point Size" 1
       conway-ctl snapshot ~/garden.json  # save current state to file
       conway-ctl restore  ~/garden.json  # apply a saved state
 

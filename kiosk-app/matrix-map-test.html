@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Matrix Mapping Test</title>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    .hud {
+      position: fixed;
+      left: 8px;
+      bottom: 8px;
+      z-index: 10;
+      padding: 6px 8px;
+      background: rgba(0, 0, 0, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+      line-height: 1.35;
+      white-space: pre;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="grid" width="384" height="192"></canvas>
+  <div class="hud" id="hud"></div>
+
+  <script>
+    const LOGICAL_WIDTH = 384;
+    const LOGICAL_HEIGHT = 192;
+    const PANEL_WIDTH = 128;
+    const PANEL_HEIGHT = 64;
+
+    const MODES = [
+      {
+        name: "full-1080",
+        title: "384x192 scaled to full 1920x1080",
+        logicalWidth: 384,
+        logicalHeight: 192,
+        cssWidth: 1920,
+        cssHeight: 1080,
+        left: 0,
+        top: 0
+      },
+      {
+        name: "top-960",
+        title: "384x192 at 5x source scale, top aligned",
+        logicalWidth: 384,
+        logicalHeight: 192,
+        cssWidth: 1920,
+        cssHeight: 960,
+        left: 0,
+        top: 0
+      },
+      {
+        name: "center-960",
+        title: "384x192 at 5x source scale, vertically centered",
+        logicalWidth: 384,
+        logicalHeight: 192,
+        cssWidth: 1920,
+        cssHeight: 960,
+        left: 0,
+        top: 60
+      },
+      {
+        name: "top-768",
+        title: "384x192 at 4x source scale, top aligned",
+        logicalWidth: 384,
+        logicalHeight: 192,
+        cssWidth: 1536,
+        cssHeight: 768,
+        left: 0,
+        top: 0
+      },
+      {
+        name: "repo-480",
+        title: "repo default: 480x192 at point size 4",
+        logicalWidth: 480,
+        logicalHeight: 192,
+        cssWidth: 1920,
+        cssHeight: 768,
+        left: 0,
+        top: 0
+      }
+    ];
+
+    const params = new URLSearchParams(window.location.search);
+    const requestedMode = params.get("mode") || "cycle";
+    const cycle = requestedMode === "cycle";
+    const canvas = document.getElementById("grid");
+    const ctx = canvas.getContext("2d", { alpha: false });
+    const hud = document.getElementById("hud");
+
+    function modeIndexByName(name) {
+      const index = MODES.findIndex((mode) => mode.name === name);
+      return index === -1 ? 0 : index;
+    }
+
+    let modeIndex = modeIndexByName(requestedMode);
+
+    function drawMode(mode) {
+      canvas.width = mode.logicalWidth;
+      canvas.height = mode.logicalHeight;
+      canvas.style.width = `${mode.cssWidth}px`;
+      canvas.style.height = `${mode.cssHeight}px`;
+      canvas.style.left = `${mode.left}px`;
+      canvas.style.top = `${mode.top}px`;
+
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, mode.logicalWidth, mode.logicalHeight);
+
+      const panelsX = Math.round(mode.logicalWidth / PANEL_WIDTH);
+      const panelsY = Math.round(mode.logicalHeight / PANEL_HEIGHT);
+      const colors = [
+        "#1d4ed8", "#047857", "#b45309",
+        "#be123c", "#6d28d9", "#0f766e",
+        "#ca8a04", "#2563eb", "#9333ea"
+      ];
+
+      for (let row = 0; row < panelsY; row += 1) {
+        for (let col = 0; col < panelsX; col += 1) {
+          const x = col * PANEL_WIDTH;
+          const y = row * PANEL_HEIGHT;
+          ctx.fillStyle = colors[(row * panelsX + col) % colors.length];
+          ctx.globalAlpha = 0.38;
+          ctx.fillRect(x, y, PANEL_WIDTH, PANEL_HEIGHT);
+          ctx.globalAlpha = 1;
+
+          ctx.strokeStyle = "#fff";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x + 1, y + 1, PANEL_WIDTH - 2, PANEL_HEIGHT - 2);
+
+          ctx.fillStyle = "#fff";
+          ctx.font = "bold 11px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(`R${row + 1} C${col + 1}`, x + PANEL_WIDTH / 2, y + 23);
+          ctx.font = "8px Arial";
+          ctx.fillText(`${x},${y} -> ${x + PANEL_WIDTH - 1},${y + PANEL_HEIGHT - 1}`, x + PANEL_WIDTH / 2, y + 39);
+        }
+      }
+
+      ctx.strokeStyle = "#777";
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= mode.logicalWidth; x += 16) {
+        ctx.beginPath();
+        ctx.moveTo(x + 0.5, 0);
+        ctx.lineTo(x + 0.5, mode.logicalHeight);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= mode.logicalHeight; y += 16) {
+        ctx.beginPath();
+        ctx.moveTo(0, y + 0.5);
+        ctx.lineTo(mode.logicalWidth, y + 0.5);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 3;
+      for (let x = 0; x <= mode.logicalWidth; x += PANEL_WIDTH) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, mode.logicalHeight);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= mode.logicalHeight; y += PANEL_HEIGHT) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(mode.logicalWidth, y);
+        ctx.stroke();
+      }
+
+      drawCorner(0, 0, "#ff0000", "TL");
+      drawCorner(mode.logicalWidth - 18, 0, "#00ff00", "TR");
+      drawCorner(0, mode.logicalHeight - 18, "#0000ff", "BL");
+      drawCorner(mode.logicalWidth - 18, mode.logicalHeight - 18, "#ffffff", "BR");
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 10px Arial";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText(mode.name, 6, 6);
+      ctx.font = "8px Arial";
+      ctx.fillText(`${mode.logicalWidth}x${mode.logicalHeight} canvas -> ${mode.cssWidth}x${mode.cssHeight} HDMI`, 6, 18);
+
+      hud.textContent = [
+        `mode: ${mode.name}`,
+        mode.title,
+        `canvas: ${mode.logicalWidth}x${mode.logicalHeight}`,
+        `HDMI rect: ${mode.cssWidth}x${mode.cssHeight} at ${mode.left},${mode.top}`,
+        cycle ? "cycling every 10s; use ?mode=top-960 to lock" : "locked by query string"
+      ].join("\n");
+    }
+
+    function drawCorner(x, y, color, label) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, 18, 18);
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, 17, 17);
+      ctx.fillStyle = color === "#ffffff" ? "#000" : "#fff";
+      ctx.font = "bold 8px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(label, x + 9, y + 9);
+    }
+
+    drawMode(MODES[modeIndex]);
+    if (cycle) {
+      window.setInterval(() => {
+        modeIndex = (modeIndex + 1) % MODES.length;
+        drawMode(MODES[modeIndex]);
+      }, 10000);
+    }
+  </script>
+</body>
+</html>

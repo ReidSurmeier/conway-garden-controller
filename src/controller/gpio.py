@@ -191,16 +191,19 @@ class UPSMonitor:
     """Monitors UPS power-loss signal via GPIO polling."""
 
     def __init__(self, pin: int, edge: str = "rising",
-                 callback: Optional[Callable[[], None]] = None):
+                 callback: Optional[Callable[[], None]] = None,
+                 shutdown_delay_s: float = 10.0):
         """
         Args:
             pin:      GPIO pin for UPS mains-lost signal
             edge:     "rising" (mains lost = goes HIGH) or "falling" (mains lost = goes LOW)
             callback: Called when power loss detected
+            shutdown_delay_s: Seconds power loss must remain asserted before callback
         """
         self.pin = pin
         self.edge = edge
         self.callback = callback
+        self.shutdown_delay_s = shutdown_delay_s
         self._stop = threading.Event()
 
         h = get_handle()
@@ -213,7 +216,10 @@ class UPSMonitor:
             target=self._poll_loop, daemon=True, name="ups-poll"
         )
         self._thread.start()
-        logger.info("UPS monitor initialized: pin=%d, edge=%s", pin, edge)
+        logger.info(
+            "UPS monitor initialized: pin=%d, edge=%s, shutdown_delay_s=%.1f",
+            pin, edge, shutdown_delay_s
+        )
 
     def _poll_loop(self):
         h = get_handle()
@@ -239,6 +245,9 @@ class UPSMonitor:
                 now = time.monotonic()
                 if now - last_trigger >= debounce:
                     last_trigger = now
+                    if not self._confirm_power_loss(h):
+                        last = idle_val
+                        continue
                     if self.callback:
                         try:
                             self.callback()
@@ -247,6 +256,35 @@ class UPSMonitor:
 
             last = val
             time.sleep(0.05)  # 50ms poll — fine for UPS power-loss detection
+
+    def _confirm_power_loss(self, handle: int) -> bool:
+        """Return True only if UPS power-loss stays asserted for the delay."""
+        trigger_val = 1 if self.edge == "rising" else 0
+        delay = max(0.0, float(self.shutdown_delay_s))
+
+        if delay == 0:
+            return True
+
+        deadline = time.monotonic() + delay
+        logger.warning(
+            "UPS power-loss candidate on GPIO %d; confirming for %.1f seconds",
+            self.pin, delay
+        )
+
+        while time.monotonic() < deadline:
+            if self._stop.wait(0.1):
+                return False
+            try:
+                val = lgpio.gpio_read(handle, self.pin)
+            except Exception as e:
+                logger.warning("UPS GPIO %d confirm read error: %s", self.pin, e)
+                return False
+            if val != trigger_val:
+                logger.info("UPS power-loss cancelled; GPIO %d returned to %d", self.pin, val)
+                return False
+
+        logger.critical("UPS power-loss confirmed after %.1f seconds", delay)
+        return True
 
     def close(self) -> None:
         self._stop.set()

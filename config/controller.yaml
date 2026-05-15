@@ -50,9 +50,10 @@ relay:
 # Switch `mode` to "gpio" once the X1201 is physically wired and the
 # 2x18650 cells are charged.
 ups:
-  mode: "disabled"      # "disabled" or "gpio"
+  mode: "gpio"          # "disabled" or "gpio"
   mains_lost_pin: 6     # X1201 PLD on BCM GPIO 6 (header pin 31)
   edge: "falling"       # PLD goes 1 -> 0 on mains loss
+  shutdown_delay_s: 10  # PLD must stay lost this long before shutdown
 
 # LED service
 led_service:

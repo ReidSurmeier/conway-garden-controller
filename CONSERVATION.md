@@ -1,257 +1,262 @@
-# Conway Pointcloud Garden — Conservation Manual
+# Conway Pointcloud Garden Conservation Manual
 
 **Artist:** Clement Valla
-**Engineer / Author:** Reid Surmeier
-**Last revised:** 2026-04-29
-**Software version:** matrix-controller v1 (hardened build, see `git log`)
+**Engineer:** Reid Surmeier
+**Last revised:** 2026-05-15
+**System host:** `conway-garden-1`
 
-This document is the long-term operating manual for the *Conway Pointcloud
-Garden* media-art piece. It follows the framework in *Best Practices for
-Conservation of Media Art* (McCoyspace) — the goal is that **a competent
-technician with no prior contact with the artist can resurrect this piece
-from a blank SD card** using only the contents of this folder.
+This manual is the long-term operating and preservation document for Conway
+Pointcloud Garden. It uses Rafael Lozano-Hemmer's McCoyspace conservation
+framework as a practical guide: preserve the artwork's executable score, keep a
+BoM with replaceability notes, document setup and maintenance, and provide a
+clear migration path when hardware or software becomes obsolete.
 
----
+Reference: https://github.com/mccoyspace/Best-practices-for-conservation-of-media-art
 
-## 1. What this piece is
+## 1. Artwork Description
 
-A Raspberry Pi 5 drives a browser-based 3D point-cloud visualization
-("Conway pointcloud garden") on a display. Two physical buttons —
-**START** and **STOP** — let the visitor turn the piece on and off. The
-START button engages a relay that powers the LED matrix / display, then
-launches a kiosk-mode Chromium pointed at a local web app. The STOP
-button reverses both. A controller daemon mediates the buttons, relay,
-and kiosk service, so the system always returns to a known-good state
-on power-cycle, crash, or hardware fault.
+Conway Pointcloud Garden is a browser-based point-cloud visualization running
+on a Raspberry Pi 5 and displayed through a NovaStar sender/receiver LED-panel
+chain. A physical START button powers the display side and launches the kiosk.
+A physical STOP button turns the display side off. A Geekworm X1201 UPS HAT
+keeps the Pi alive long enough to shut down safely if wall power is lost.
 
----
+The work should be understood as a coupled system:
 
-## 2. Bill of Materials
+- The visual app and point-cloud assets
+- The NovaStar sender/receiver mapping
+- The Pi OS, Chromium, systemd units, and controller daemon
+- The GPIO wiring, relay/SSR, UPS power-loss signal, PSU, fusing, and buttons
+- The operating instructions and recovery material in this repository
 
-| Component | Function | Replaceable with | Notes |
-|---|---|---|---|
-| Raspberry Pi 5 (8 GB) | host computer | Any Pi 5 (4 GB or 8 GB); Pi 4 needs code change to `gpiochip0` (currently `gpiochip4`) | RP1 chip on Pi 5 means `/dev/gpiochip4` is the 40-pin header |
-| MicroSD card, 64 GB, A2 | system disk | Any A2-rated 32 GB+ industrial-grade SD; SanDisk Industrial / Samsung PRO Endurance recommended for write endurance | Re-image from the gold image (see §6) |
-| 5 V relay module / SSR | switches LED matrix PSU | Any 5 V active-HIGH relay rated ≥10 A; opto-isolated preferred | Active-LOW relay: flip `relay.active_high` in `/etc/matrix-controller/controller.yaml` |
-| START momentary button | user input | Any NO momentary push-button | Wires GPIO 18 ↔ GND |
-| STOP momentary button | user input | Any NO momentary push-button | Wires GPIO 19 ↔ GND |
-| Display (HDMI) | shows kiosk | Any HDMI display 1080p+ at 60 Hz | EDID quirks: see `/boot/firmware/config.txt` `hdmi_force_hotplug` |
-| Geekworm X1201 UPS HAT (optional) | mains-loss safe shutdown | Any UPS HAT that exposes a mains-lost GPIO pin; flip `ups.mode: gpio` and set `mains_lost_pin` | Currently `mode: disabled` in deployed config |
-| Power supply | 5 V / 5 A USB-C | Any official Pi 5 PSU (27 W) | Surge-protected outlet recommended (McCoy §hardware) |
+## 2. Verified Current State
 
----
+Verified on 2026-05-15:
 
-## 3. GPIO wiring map (`/dev/gpiochip4`)
+- START button: relay ON and `matrix-led.service` starts.
+- STOP button: `matrix-led.service` stops and relay OFF.
+- STOP does not halt the Pi.
+- X1201 PLD on BCM GPIO 6 reads HIGH with wall power connected.
+- X1201 PLD falls LOW on wall-power loss.
+- Sustained power loss for 10 seconds triggers systemd shutdown.
+- Shutdown path was tested repeatedly and completed cleanly.
+- Sender-card mapping was fixed after identifying a sender-card/mapping issue.
+- Working app mapping is `312x416`, `xOffset=416`, `rotation=90`,
+  `pointSize=1`.
+- The earlier `384x192` mapping was a diagnostic mistake and is superseded.
 
-| Function | BCM GPIO | Header pin | Wiring |
-|---|---|---|---|
-| START button | 18 | 12 | Button → GND (pin 14 or 6); pull-up internal |
-| STOP button | 19 | 35 | Button → GND (pin 39 or 9); pull-up internal |
-| Relay control | 20 | 38 | Module IN → pin 38; Module VCC → 5 V (pin 2 or 4); Module GND → GND |
-| UPS mains-lost (disabled) | 21 | 40 | Reserved; not in use |
+## 3. Normal Operation
 
-If pins are changed, update `/etc/matrix-controller/controller.yaml` —
-the daemon validates pin numbers at startup and will refuse to run on
-invalid config.
+1. Apply wall power to the box.
+2. Wait for the Pi to boot.
+3. Press START.
+4. Confirm the display turns on and the garden appears.
+5. Press STOP to turn the display off.
 
----
+If wall power is lost unexpectedly, do not panic. The UPS keeps the Pi alive
+and the controller shuts the Pi down after the PLD signal remains lost for 10
+seconds.
 
-## 4. Software stack
+## 4. What Not To Change Casually
 
-| Layer | What | Where |
+- Do not change the NovaStar sender/receiver mapping without saving a backup
+  and updating `DISPLAY_MAPPING.md`.
+- Do not change the app canvas mapping away from `312x416`, `xOffset=416`,
+  `rotation=90`, `pointSize=1` unless the NovaStar mapping is intentionally
+  rebuilt.
+- Do not apt-upgrade the Pi during an exhibition unless there is a documented
+  reason and a rollback plan.
+- Do not disable the X1201 UPS GPIO shutdown path.
+- Do not power the Pi in a way that bypasses the X1201 if safe shutdown is
+  required.
+- Do not disable the hardware watchdog, journald persistence, or health timer.
+
+## 5. Hardware
+
+The full BoM is in `HARDWARE_BOM.md`. Core components:
+
+| Component | Role | Replaceability |
 |---|---|---|
-| OS | Raspberry Pi OS Bookworm (Debian 12) | system |
-| Python | 3.11 | system |
-| Python deps | `python3-lgpio`, `python3-yaml` (apt — no pip) | system |
-| Controller daemon | `controller.main` package | `/usr/local/lib/python3.11/dist-packages/controller/` |
-| Controller config | `controller.yaml` | `/etc/matrix-controller/controller.yaml` |
-| Controller systemd unit | `matrix-controller.service` (Type=notify, WatchdogSec=30) | `/etc/systemd/system/matrix-controller.service` |
-| Kiosk start script | `matrix-led-start.sh` | `/home/pi/Desktop/matrix-led-start.sh` |
-| Kiosk systemd unit | `matrix-led.service` (Type=simple, after graphical.target) | `/etc/systemd/system/matrix-led.service` |
-| Kiosk web app | static HTML/JS pointcloud viewer | `/home/pi/Desktop/conway.pointcloud.garden/` |
-| Browser | Chromium (kiosk mode, screen blanking off) | `/usr/bin/chromium-browser` |
-| Health check | `conway-health.sh` (daily) | `/usr/local/bin/conway-health.sh` (timer in `conway-health.timer`) |
-| HW watchdog | systemd `RuntimeWatchdogSec=15` (BCM2712 hw watchdog) | `/etc/systemd/system.conf.d/10-watchdog.conf` |
-| Journald | persistent, capped at 300 MB rolling | `/etc/systemd/journald.conf.d/10-conservation.conf` |
-| Log rotation | `conway_startup.log` weekly, 8 weeks | `/etc/logrotate.d/conway-startup` |
+| Raspberry Pi 5 | Host computer | Replaceable with another Pi 5; other Pi models need GPIO changes |
+| MicroSD card | System disk | Replaceable from gold image |
+| Geekworm X1201 | UPS and power-loss signal | Replaceable only if new UPS exposes equivalent GPIO behavior |
+| Samsung 30Q cells | UPS batteries | Replaceable with compatible protected/approved cells per X1201 requirements |
+| MEAN WELL LRS-150F | Display PSU | Replaceable with equivalent 5 V supply with sufficient current and physical fit |
+| LCLCTC DIN rail SSR | Switches display PSU/load path | Replaceable with equivalent rated relay/SSR |
+| APIELE push buttons | START/STOP inputs | Replaceable with normally-open momentary switches |
+| NovaStar MSD300-1 | Sender card | Replaceable with compatible sender; requires remapping/reverification |
+| NovaStar MRV412 | Receiver card | Replaceable with compatible receiver; requires config backup/reload |
+| LED panels | Display surface | Replace modules/panels only after isolating cable/power/mapping faults |
 
-Source repo: `~/Desktop/Pointcloud-Garden-On-Off-V1-main/`
-Re-deploy with: `sudo bash ~/Desktop/Pointcloud-Garden-On-Off-V1-main/scripts/install.sh`
+## 6. Wiring
 
----
+GPIO numbers are BCM numbers.
 
-## 5. Boot / runtime sequence
+| Function | BCM GPIO | Header pin | Notes |
+|---|---:|---:|---|
+| START button | 18 | 12 | Button to GND, internal pull-up |
+| STOP button | 19 | 35 | Button to GND, internal pull-up |
+| Relay/SSR control | 20 | 38 | Active high |
+| X1201 PLD | 6 | 31 | HIGH = wall power OK, LOW = wall power lost |
 
+The controller config is `/etc/matrix-controller/controller.yaml`; the repo
+snapshot is `config/controller.yaml`.
+
+## 7. Software Stack
+
+| Layer | Current value |
+|---|---|
+| OS | Raspberry Pi OS / Debian 12 Bookworm |
+| Kernel | `6.12.62+rpt-rpi-2712` at audit time |
+| Python | `3.11.2` |
+| Browser | Chromium `145.0.7632.116` at audit time |
+| Controller | Python package installed to `/usr/local/lib/python3.11/dist-packages/controller/` |
+| Service manager | systemd |
+| Network manager | NetworkManager |
+| Remote access | SSH, Tailscale during service; target client state is direct Ethernet SSH |
+
+## 8. Runtime Files
+
+| Runtime path | Meaning |
+|---|---|
+| `/etc/matrix-controller/controller.yaml` | Live GPIO/UPS/service config |
+| `/etc/systemd/system/matrix-controller.service` | Controller daemon unit |
+| `/etc/systemd/system/matrix-led.service` | Display/kiosk service unit |
+| `/home/pi/Desktop/matrix-led-start.sh` | Starts HTTP server and Chromium kiosk |
+| `/home/pi/Desktop/conway.pointcloud.garden/` | Static app served on port 8000 |
+| `/usr/local/bin/conway-health.sh` | Daily health snapshot |
+| `/boot/firmware/config.txt` | Boot HDMI/KMS config snapshot |
+| `/etc/ssh/sshd_config.d/10-conservation.conf` | Recovery SSH settings |
+| `/etc/chromium/policies/managed/conservation.json` | Chromium stability policy |
+
+Snapshots of these files are committed under `system/`, `kiosk/`, `config/`,
+and `health/`.
+
+## 9. Startup Sequence
+
+At boot:
+
+1. systemd starts `matrix-controller.service`.
+2. Controller opens GPIO, validates config, forces relay OFF, stops
+   `matrix-led.service`, and enters IDLE.
+3. Display stays off until START is pressed.
+
+When START is pressed:
+
+1. Controller transitions IDLE -> RUNNING.
+2. Relay turns ON.
+3. systemd starts `matrix-led.service`.
+4. `matrix-led-start.sh` starts `python3 -m http.server 8000`.
+5. Chromium starts in kiosk mode at `http://localhost:8000/?v=<timestamp>`.
+
+When STOP is pressed:
+
+1. Controller transitions RUNNING -> IDLE.
+2. `matrix-led.service` stops Chromium and the HTTP server.
+3. Relay turns OFF.
+
+When wall power is lost:
+
+1. X1201 PLD goes LOW on GPIO 6.
+2. Controller confirms the signal remains lost for 10 seconds.
+3. Controller stops display service, turns relay OFF, and runs systemd
+   poweroff.
+
+## 10. Display Mapping
+
+See `DISPLAY_MAPPING.md` for detailed notes. Current app geometry:
+
+```text
+canvas = 312x416
+xOffset = 416
+yOffset = 0
+rotation = 90
+pointSize = 1
+Chromium window = 1920x1080
 ```
-power-on
-  └─ systemd starts hardware watchdog (15 s — auto-reboots a hung kernel)
-     ├─ multi-user.target → matrix-controller.service
-     │   • validates config, opens GPIO, forces relay OFF, stops kiosk if running
-     │   • notifies systemd READY=1, sends WATCHDOG=1 every 5 s
-     └─ graphical.target → LightDM autologin pi → LXDE-pi-x
-         (xscreensaver autostart is intentionally disabled)
 
-START button (GPIO 18 → GND)
-  → controller flips relay ON
-  → systemctl start matrix-led.service
-      → matrix-led-start.sh launches HTTP server + Chromium kiosk
+The sender-card issue was resolved outside the app. If future symptoms look
+like stretched pixels, first verify NovaStar sender/receiver mapping before
+changing the web app.
 
-STOP button (GPIO 19 → GND)
-  → controller suppresses UPS callbacks for 3 s (transient mitigation)
-  → transitions state to IDLE
-  → systemctl stop matrix-led.service (Chromium + HTTP server killed)
-  → relay OFF
-```
+## 11. Maintenance
 
-**Self-healing behaviors built in:**
-- Daemon watchdog tick (every 5 s) reconciles physical relay state with
-  logical state machine. Drift → corrected automatically.
-- systemd `WatchdogSec=30`: if daemon hangs (no heartbeat), systemd
-  kills + restarts it.
-- `Restart=always`, `RestartSec=10`: crashes auto-recover.
-- `StartLimitBurst=10` / `StartLimitIntervalSec=300`: restart-loop
-  protection — if the daemon is fundamentally broken, systemd marks it
-  failed instead of looping forever, surfacing the problem to operators.
-- `atexit` hook + last-resort relay-OFF on any normal exit path.
-- Hardware watchdog: kernel hang → automatic reboot in 15 s.
-- Daily health check (`conway-health`) writes one line of
-  OK/FAIL summary to journal — `journalctl -t conway-health` for history.
+| Cadence | Task |
+|---|---|
+| Each install | Verify START and STOP buttons |
+| Each install | Verify `sudo pinctrl get 6` is HIGH on wall power |
+| Each install | Unplug wall power once and confirm safe shutdown if commissioning |
+| Monthly | Inspect cables, ribbons, fuses, relay terminals, and panel seating |
+| Monthly | Read `journalctl -t conway-health --since "30 days ago"` |
+| On change | Commit code/config, update docs, and make a gold image |
+| Annually | Boot-test spare SD card or image |
+| 5 years | Replace SD card proactively or migrate to SSD |
 
----
+## 12. Troubleshooting
 
-## 6. Disaster recovery
+**Buttons do nothing**
+Check `systemctl status matrix-controller` and
+`journalctl -u matrix-controller -n 100 --no-pager`.
 
-### Total SD-card failure
-1. Buy a fresh A2 SD card (≥ 32 GB).
-2. Flash Raspberry Pi OS Bookworm 64-bit (Lite or Desktop).
-3. Boot the Pi, complete first-run setup, set timezone + Wi-Fi.
-4. Copy the entire `Pointcloud-Garden-On-Off-V1-main/` source folder to
-   `~/Desktop/`.
-5. Copy `conway.pointcloud.garden/` (the web app) to `~/Desktop/`.
-6. `sudo bash ~/Desktop/Pointcloud-Garden-On-Off-V1-main/scripts/install.sh`
-7. Re-apply the system hardening from §10 of this document
-   (or run `bootstrap.sh` if a future maintainer has packaged it).
-8. Reboot. The piece should be running.
+**Display does not start**
+Check `systemctl status matrix-led` and
+`journalctl -u matrix-led -n 100 --no-pager`.
 
-### Faster recovery: gold-image clone
-Recommended: keep **two cloned SD cards** stored separately (artist studio
-+ collector) as drop-in replacements. To make a clone:
+**Power-loss shutdown does not happen**
+Check:
 
 ```bash
-# On a Mac/Linux machine with the working SD card inserted:
-sudo dd if=/dev/diskN of=conway-garden-gold-YYYY-MM-DD.img bs=4M status=progress
-# Then shrink + compress for storage:
-xz -9 conway-garden-gold-YYYY-MM-DD.img
+sudo pinctrl get 6
+sudo cat /etc/matrix-controller/controller.yaml
+journalctl -u matrix-controller -b --no-pager | grep -i ups
 ```
 
-Verify the clone by booting a spare Pi from it before storing.
+**Panel has a persistent color area that follows the physical panel**
+Treat as hardware: reseat ribbon cables, swap cable/power path, then mark the
+panel or module defective if the fault follows the panel.
 
----
+**Panel image is stretched or mapped wrong**
+Treat as NovaStar sender/receiver configuration first. Use the diagnostic
+pages in `kiosk-app/` and the notes in `DISPLAY_MAPPING.md`.
 
-## 7. Maintenance
+**SSH unavailable after Wi-Fi is disabled**
+Use direct Ethernet fallback from `NETWORKING.md`.
 
-| Task | Cadence | How |
-|---|---|---|
-| Visual inspection (dust, cable seating) | monthly | physical |
-| Read `journalctl -t conway-health --since "30d ago"` | monthly | check for `FAIL` lines |
-| Verify spare SD card still boots | annually | swap and run for an hour |
-| Update gold image after deliberate code changes | on change | re-image and re-distribute |
-| Replace SD card preemptively (write wear) | 5 years | re-flash from gold image |
-| Check relay clicks audibly on START/STOP | each install | physical |
-| Confirm Chromium loads kiosk URL | each install | press START |
+## 13. Recovery
 
-**Do not** apt-upgrade casually. The system has unattended-upgrades
-disabled by design. Every change to the system must be documented and
-re-baked into the gold image.
+See `RECOVERY.md` for blank-card rebuild. The short version:
 
----
+1. Flash Raspberry Pi OS Bookworm 64-bit Desktop.
+2. Clone this repo.
+3. Run `sudo bash scripts/bootstrap.sh`.
+4. Restore or verify `kiosk-app/`.
+5. Reboot.
+6. Verify `matrix-controller`, `conway-health.timer`, GPIO 6, START/STOP, and
+   display mapping.
 
-## 8. Troubleshooting (95 % rule — McCoy)
+## 14. Migration Notes
 
-**The Pi is on but the buttons do nothing.**
-→ Check `systemctl status matrix-controller`. If "failed", check
-  `journalctl -u matrix-controller -n 100`. Most likely: GPIO chip
-  busy; reboot to clear.
+- Pi 5 uses `/dev/gpiochip4`; a Pi 4 or later replacement may need code
+  changes.
+- Chromium kiosk flags should be retested after major Chromium updates.
+- NovaStar sender/receiver config should be exported and stored with this
+  repository if the service laptop/software is available.
+- Direct Ethernet SSH is preferred for client handoff; Wi-Fi should be disabled
+  only after wired SSH is verified.
+- If the X1201 is replaced, preserve the behavior "GPIO HIGH = wall power OK,
+  GPIO LOW = wall power lost" or update code/config and retest shutdown.
 
-**Chromium shows a blank page or "this site can't be reached".**
-→ The HTTP server didn't come up. `journalctl -u matrix-led -n 100`.
-  Check `~/Desktop/conway.pointcloud.garden/` exists and `index.html`
-  is present.
+## 15. Archive Guidance
 
-**Kiosk shows a "Chromium didn't shut down correctly" bubble.**
-→ Already mitigated by `--disable-session-crashed-bubble` and the
-  `Preferences` patch in `matrix-led-start.sh`. If it still appears,
-  delete `~/.config/chromium` and re-run.
+Keep these together as the artwork package:
 
-**Relay clicks but nothing turns on.**
-→ Hardware. Inspect relay module wiring; replace relay if it doesn't
-  click; replace power supply on the load side if it does click.
+- This Git repository
+- A gold SD-card image
+- NovaStar sender/receiver config export
+- Photos of wiring and panel cabling
+- Photos/video of correct operation
+- Spare SD card
+- Spare fuses, ribbon cables, and known-good panel/module if available
 
-**Pi reboots itself spontaneously.**
-→ The hardware watchdog tripped. Look for thermal/undervoltage in
-  `journalctl -p err -b -1` (previous boot). Check PSU and cooling.
-
-**Buttons "stutter" or fire repeatedly on one press.**
-→ Increase `buttons.debounce_ms` in `/etc/matrix-controller/controller.yaml`
-  from 80 → 120, restart the service.
-
----
-
-## 9. Escalation
-
-1. Read this document (95 % of issues).
-2. Contact the operating institution's IT / facilities technician.
-3. Contact Reid Surmeier (engineer) — see studio contact card.
-4. Remote troubleshooting via SSH (key-only, see §12).
-5. On-site visit (last resort).
-
----
-
-## 10. System hardening checklist (re-apply after re-image)
-
-Run as root on a fresh install, after the controller is deployed:
-
-- `/etc/systemd/system.conf.d/10-watchdog.conf` — `RuntimeWatchdogSec=15s`
-- `/etc/systemd/journald.conf.d/10-conservation.conf` — persistent + 300 MB cap
-- `/etc/logrotate.d/conway-startup` — weekly rotation
-- `/etc/ssh/sshd_config.d/10-conservation.conf` — `PasswordAuthentication no`
-- `/etc/chromium/policies/managed/conservation.json` — disable component updater
-- `/etc/xdg/lxsession/LXDE-pi/autostart` — `@xscreensaver` line commented out
-- `hostnamectl set-hostname conway-garden-1`
-- `/usr/local/bin/conway-health.sh` + `conway-health.timer` (enabled)
-- `unattended-upgrades` disabled (or never installed)
-
-A copy of every config file above lives in `~/conservation-snapshots/` on
-each Pi after first hardening.
-
----
-
-## 11. Migration notes (when Pi 5 is obsolete)
-
-- The controller daemon has one platform-specific constant:
-  `CHIP = 4` in `src/controller/gpio.py` (Pi 5 RP1 chip number).
-- gpiozero callbacks were unreliable on Pi 5 + lgpio 0.2.2 — that's why
-  the controller polls directly via `lgpio.gpio_read` in 10 ms threads.
-  Future hardware may not need the workaround.
-- Chromium kiosk-mode behavior has changed across versions; verify the
-  flag list in `matrix-led-start.sh` after any Chromium major-version
-  bump.
-- Replace SD with proper SSD (USB-boot) once the SD becomes the weakest
-  link.
-- The web app (`conway.pointcloud.garden`) is plain static HTML/JS —
-  any modern browser should display it indefinitely. No backend.
-
----
-
-## 12. Contacts & access
-
-- **Artist:** Clement Valla
-- **Engineer:** Reid Surmeier — `rsurmeie@risd.edu`
-- **SSH:** `ssh pi@<host>` — **key-only authentication**. Authorised keys
-  in `/home/pi/.ssh/authorized_keys`. Add a new conservator key by
-  appending to that file from a privileged shell.
-- **Web app source:** in `~/Desktop/conway.pointcloud.garden/` and
-  upstream repo (link TBD).
-- **Controller source:** `~/Desktop/Pointcloud-Garden-On-Off-V1-main/`
-  and upstream repo on GitHub (link TBD — McCoyspace recommends
-  open-source publication so the work survives the studio).
+The spreadsheet supply list is historical source material. Its older control
+logic and GPIO notes are superseded by this verified manual.

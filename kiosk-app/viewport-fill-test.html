@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Viewport Fill Test</title>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      cursor: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="pattern"></canvas>
+  <script>
+    const canvas = document.getElementById("pattern");
+    const ctx = canvas.getContext("2d", { alpha: false });
+
+    function label(value, x, y, size, fill = "#fff", align = "center") {
+      ctx.font = `900 ${size}px Arial, Helvetica, sans-serif`;
+      ctx.textAlign = align;
+      ctx.textBaseline = "middle";
+      ctx.lineWidth = Math.max(4, Math.round(size / 8));
+      ctx.strokeStyle = fill === "#000" ? "#fff" : "#000";
+      ctx.strokeText(value, x, y);
+      ctx.fillStyle = fill;
+      ctx.fillText(value, x, y);
+    }
+
+    function intParam(name) {
+      const value = Number(new URLSearchParams(window.location.search).get(name));
+      return Number.isFinite(value) && value > 0 ? Math.round(value) : null;
+    }
+
+    function draw() {
+      const dpr = window.devicePixelRatio || 1;
+      const forcedW = intParam("w");
+      const forcedH = intParam("h");
+      const w = forcedW || Math.max(1, Math.round(window.innerWidth));
+      const h = forcedH || Math.max(1, Math.round(window.innerHeight));
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, w, h);
+
+      const halfW = w / 2;
+      const halfH = h / 2;
+      ctx.fillStyle = "#ff0000";
+      ctx.fillRect(0, 0, halfW, halfH);
+      ctx.fillStyle = "#00b000";
+      ctx.fillRect(halfW, 0, halfW, halfH);
+      ctx.fillStyle = "#004cff";
+      ctx.fillRect(0, halfH, halfW, halfH);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(halfW, halfH, halfW, halfH);
+
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = "#000";
+      ctx.strokeRect(4, 4, w - 8, h - 8);
+      ctx.beginPath();
+      ctx.moveTo(halfW, 0);
+      ctx.lineTo(halfW, h);
+      ctx.moveTo(0, halfH);
+      ctx.lineTo(w, halfH);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#ffff00";
+      ctx.lineWidth = 4;
+      for (let x = 0; x <= w; x += 64) {
+        ctx.beginPath();
+        ctx.moveTo(x + 0.5, 0);
+        ctx.lineTo(x + 0.5, h);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= h; y += 64) {
+        ctx.beginPath();
+        ctx.moveTo(0, y + 0.5);
+        ctx.lineTo(w, y + 0.5);
+        ctx.stroke();
+      }
+
+      label("TL", Math.min(60, w * 0.2), Math.min(42, h * 0.2), 34, "#fff");
+      label("TR", w - Math.min(60, w * 0.2), Math.min(42, h * 0.2), 34, "#000");
+      label("BL", Math.min(60, w * 0.2), h - Math.min(42, h * 0.2), 34, "#fff");
+      label("BR", w - Math.min(60, w * 0.2), h - Math.min(42, h * 0.2), 34, "#000");
+      label(`${w} x ${h}`, halfW, halfH, Math.max(28, Math.min(72, Math.round(w / 8))), "#fff");
+
+      if (w >= 416 && h >= 312) {
+        ctx.strokeStyle = "#00ffff";
+        ctx.lineWidth = 6;
+        ctx.strokeRect(3, 3, 410, 306);
+        label("416x312", 208, 156, 40, "#00ffff");
+      }
+    }
+
+    window.addEventListener("resize", draw);
+    draw();
+  </script>
+</body>
+</html>

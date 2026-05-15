@@ -38,18 +38,18 @@ conway-ctl get "Point Size"
 # Set one (types are auto-coerced: 4, 1.5, true, false, "Some String")
 conway-ctl set "Point Size" 4
 
-# Set several at once
-conway-ctl set "Set Width" 480 "Set Height" 192 "Point Size" 4
+# Set several at once for the current verified sender-card mapping
+conway-ctl set "Set Width" 312 "Set Height" 416 "Point Size" 1
 
 # Trigger a button-style control (no value)
 conway-ctl click "Apply Preset"
 conway-ctl click "Randomize Values"
 
 # Save a tuned configuration
-conway-ctl snapshot ~/conway-presets/wide-3x3.json
+conway-ctl snapshot ~/conway-presets/verified-312x416-rot90.json
 
 # Restore later (e.g., on next boot or after a reset)
-conway-ctl restore  ~/conway-presets/wide-3x3.json
+conway-ctl restore  ~/conway-presets/verified-312x416-rot90.json
 ```
 
 ## Remote control from your laptop
@@ -69,11 +69,12 @@ python3 conway-ctl.py list
 # 1. Save the current "known good" state as a fallback
 conway-ctl snapshot ~/conway-presets/baseline.json
 
-# 2. Experiment live
-conway-ctl set "Width" 480 "Height" 192 "Point Size" 4 "Zoom" 1.2
+# 2. Experiment live. "Width" / "Height" are readback fields;
+# use "Set Width" / "Set Height" to change the canvas.
+conway-ctl set "Set Width" 312 "Set Height" 416 "Point Size" 1 "Zoom" 1.2
 
 # 3. If you like it, snapshot. If not, restore baseline.
-conway-ctl snapshot ~/conway-presets/wall-3x3-tuned.json
+conway-ctl snapshot ~/conway-presets/verified-312x416-rot90.json
 # or
 conway-ctl restore  ~/conway-presets/baseline.json
 
@@ -87,7 +88,7 @@ check, to apply a saved snapshot every time the kiosk starts:
 
 ```bash
 # wait a beat for the bridge to be installable, then restore
-( sleep 4 && /usr/local/bin/conway-ctl restore /home/pi/conway-presets/wall-3x3-tuned.json ) &
+( sleep 4 && /usr/local/bin/conway-ctl restore /home/pi/conway-presets/verified-312x416-rot90.json ) &
 ```
 
 ## Future: web UI

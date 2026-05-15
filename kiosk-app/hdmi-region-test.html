@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HDMI Region Test</title>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      cursor: none;
+    }
+
+    canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="pattern" width="1920" height="1080"></canvas>
+  <script>
+    const canvas = document.getElementById("pattern");
+    const ctx = canvas.getContext("2d", { alpha: false });
+    const W = 1920;
+    const H = 1080;
+    const colW = 160;
+    const rowH = 120;
+    const colors = [
+      "#ff0000", "#00a000", "#004cff", "#ffff00",
+      "#ff00ff", "#00ffff", "#ff7f00", "#7f00ff",
+      "#ffffff", "#808080", "#8b4513", "#000000"
+    ];
+
+    function text(label, x, y, size, fill = "#fff", align = "center") {
+      ctx.font = `900 ${size}px Arial, Helvetica, sans-serif`;
+      ctx.textAlign = align;
+      ctx.textBaseline = "middle";
+      ctx.lineWidth = Math.max(4, Math.round(size / 10));
+      ctx.strokeStyle = fill === "#000" ? "#fff" : "#000";
+      ctx.strokeText(label, x, y);
+      ctx.fillStyle = fill;
+      ctx.fillText(label, x, y);
+    }
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
+
+    for (let i = 0; i < 12; i += 1) {
+      const x = i * colW;
+      ctx.fillStyle = colors[i];
+      ctx.fillRect(x, 0, colW, H);
+      const darkText = i === 3 || i === 5 || i === 8 || i === 9;
+      for (let y = 64; y < H; y += 180) {
+        text(`X${x}`, x + colW / 2, y, 42, darkText ? "#000" : "#fff");
+      }
+    }
+
+    ctx.lineWidth = 6;
+    for (let y = 0; y <= H; y += rowH) {
+      ctx.strokeStyle = y === 0 ? "#ff0000" : y === H ? "#0000ff" : "#ffffff";
+      ctx.beginPath();
+      ctx.moveTo(0, y + 0.5);
+      ctx.lineTo(W, y + 0.5);
+      ctx.stroke();
+      if (y < H) {
+        text(`Y${y}`, 86, y + rowH / 2, 38, "#fff");
+        text(`Y${y}`, W - 86, y + rowH / 2, 38, "#fff");
+      }
+    }
+
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = "#000";
+    for (let x = 0; x <= W; x += colW) {
+      ctx.beginPath();
+      ctx.moveTo(x + 0.5, 0);
+      ctx.lineTo(x + 0.5, H);
+      ctx.stroke();
+    }
+
+    function corner(x, y, w, h, color, label, fill) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 8;
+      ctx.strokeRect(x + 4, y + 4, w - 8, h - 8);
+      text(label, x + w / 2, y + h / 2, 52, fill);
+    }
+
+    corner(0, 0, 220, 150, "#ff0000", "TL 0,0", "#fff");
+    corner(W - 260, 0, 260, 150, "#00ff00", "TR 1920", "#000");
+    corner(0, H - 150, 260, 150, "#0000ff", "BL 1080", "#fff");
+    corner(W - 300, H - 150, 300, 150, "#ffffff", "BR 1920,1080", "#000");
+
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.moveTo(W / 2, 0);
+    ctx.lineTo(W / 2, H);
+    ctx.moveTo(0, H / 2);
+    ctx.lineTo(W, H / 2);
+    ctx.stroke();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(W / 2, 0);
+    ctx.lineTo(W / 2, H);
+    ctx.moveTo(0, H / 2);
+    ctx.lineTo(W, H / 2);
+    ctx.stroke();
+    text("CENTER 960,540", W / 2, H / 2, 60, "#fff");
+  </script>
+</body>
+</html>

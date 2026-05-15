@@ -1,5 +1,4 @@
 {
-  "_comment": "Conservation: Chromium kiosk lockdown. Install path: /etc/chromium/policies/managed/conservation.json",
   "ComponentUpdatesEnabled": false,
   "DefaultBrowserSettingEnabled": false,
   "PromotionalTabsEnabled": false,

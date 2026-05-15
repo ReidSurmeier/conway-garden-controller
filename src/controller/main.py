@@ -122,8 +122,9 @@ class MatrixController:
 
             config.setdefault('ups', {})
             config['ups'].setdefault('mode', 'disabled')
-            config['ups'].setdefault('mains_lost_pin', 21)
-            config['ups'].setdefault('edge', 'rising')
+            config['ups'].setdefault('mains_lost_pin', 6)
+            config['ups'].setdefault('edge', 'falling')
+            config['ups'].setdefault('shutdown_delay_s', 10)
 
             config.setdefault('led_service', {})
             config['led_service'].setdefault('name', 'matrix-led.service')
@@ -149,6 +150,10 @@ class MatrixController:
 
             if config['ups']['edge'] not in ('rising', 'falling'):
                 raise ValueError(f"ups.edge must be 'rising' or 'falling', got {config['ups']['edge']!r}")
+
+            shutdown_delay_s = config['ups']['shutdown_delay_s']
+            if not isinstance(shutdown_delay_s, (int, float)) or shutdown_delay_s < 0 or shutdown_delay_s > 3600:
+                raise ValueError(f"ups.shutdown_delay_s must be 0..3600 seconds, got {shutdown_delay_s!r}")
 
             # Pins must not collide
             pins_in_use = {
@@ -214,12 +219,14 @@ class MatrixController:
             ups_mode = self.config['ups']['mode']
             ups_pin = self.config['ups'].get('mains_lost_pin') if ups_mode == 'gpio' else None
             ups_edge = self.config['ups'].get('edge', 'rising')
+            ups_shutdown_delay_s = self.config['ups'].get('shutdown_delay_s', 10)
             
             self.ups = UPSController(
                 mode=ups_mode,
                 pin=ups_pin,
                 edge=ups_edge,
                 callback=self._on_ups_power_loss,
+                shutdown_delay_s=ups_shutdown_delay_s,
                 dry_run=self.dry_run
             )
             
@@ -327,17 +334,9 @@ class MatrixController:
             return
 
         with self._lock:
-            # Only perform emergency shutdown if system is RUNNING.
-            # If IDLE, the relay is already OFF (e.g. stop button was just pressed),
-            # so the UPS signal is likely a false trigger from the power draw change.
-            if not self.state_machine.is_running():
-                logger.warning(
-                    f"UPS power-loss ignored - system is {self.state_machine.get_state().name}, "
-                    "not RUNNING (likely false trigger from relay turning off)"
-                )
-                return
-
-            # Transition to EMERGENCY_SHUTDOWN
+            # Power loss can drain the UPS even while the artwork is idle, so
+            # halt from any state. Stop-button transients are handled by the
+            # short _ups_suppressed window above.
             self.state_machine.transition_to_emergency_shutdown()
 
             # Stop LED service
