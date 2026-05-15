@@ -248,6 +248,8 @@ To force password login only:
 ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no pi@10.55.0.2
 ```
 
+(password for ssh is 123)
+
 ### Push An Update From The Mac
 
 For normal field service, the Mac should supply the release files. The Pi does
