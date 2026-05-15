@@ -94,6 +94,10 @@ systemctl disable --now NetworkManager-wait-online.service 2>/dev/null || true
 systemctl disable --now cups.service cups.socket cups.path cups-browsed.service \
     bluetooth.service ModemManager.service triggerhappy.service triggerhappy.socket \
     wayvnc-control.service 2>/dev/null || true
+systemctl mask --now packagekit.service packagekit-offline-update.service \
+    udisks2.service 2>/dev/null || true
+ln -sf /dev/null /etc/udev/rules.d/60-triggerhappy.rules
+udevadm control --reload 2>/dev/null || true
 echo ""
 
 # 8. Set hostname.

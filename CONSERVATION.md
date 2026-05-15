@@ -44,6 +44,15 @@ Verified on 2026-05-15:
 - Working app mapping is `312x416`, `xOffset=416`, `rotation=90`,
   `pointSize=1`.
 - The earlier `384x192` mapping was a diagnostic mistake and is superseded.
+- Direct Ethernet service access was verified with the Pi at `10.55.0.2` and
+  the Mac USB Ethernet adapter at `10.55.0.1`.
+- With Wi-Fi disabled, a hard power-cycle and a controlled reboot both returned
+  to Ethernet SSH, `matrix-controller.service=active`, `conway-health=success`,
+  and `systemctl --failed` showing zero failed units.
+- Background update/noise sources are disabled or masked: apt daily timers,
+  PackageKit, NetworkManager wait-online, triggerhappy hotkey hooks, CUPS,
+  Bluetooth service, ModemManager, WayVNC control, and the unused DHCP Ethernet
+  profile.
 
 ## 3. Normal Operation
 
@@ -188,6 +197,8 @@ changing the web app.
 | Each install | Unplug wall power once and confirm safe shutdown if commissioning |
 | Monthly | Inspect cables, ribbons, fuses, relay terminals, and panel seating |
 | Monthly | Read `journalctl -t conway-health --since "30 days ago"` |
+| Monthly | Confirm `systemctl --failed` returns zero units |
+| Monthly | Confirm `/etc/apt/apt.conf.d/20auto-upgrades` still disables apt periodic work |
 | On change | Commit code/config, update docs, and make a gold image |
 | Annually | Boot-test spare SD card or image |
 | 5 years | Replace SD card proactively or migrate to SSD |
