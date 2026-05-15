@@ -193,30 +193,84 @@ After a verified deployment, make a tag and create a gold SD card image. Store
 that image with the collector box, along with wiring photos, the BoM, spare
 fuses, spare cables, and any exported NovaStar configuration.
 
-## Direct Ethernet Service
+## Direct Ethernet Service Guide
 
-Direct Ethernet SSH has been verified from Reid's Mac to the Pi. The service
-subnet is:
+Use the Ethernet cable as the service connection between a technician's Mac
+and the Pi. This path has been verified with the Pi reachable at
+`10.55.0.2`.
+
+Service subnet:
 
 ```text
 Mac USB Ethernet: 10.55.0.1/24
 Pi eth0:          10.55.0.2/24
 ```
 
-Use:
+### Connect
+
+1. Plug the USB Ethernet adapter into the Mac.
+2. Connect an Ethernet cable from the adapter to the Pi.
+3. Wait about 10 seconds for link negotiation.
+4. Confirm the Mac can see the Pi:
+
+   ```bash
+   ping 10.55.0.2
+   ```
+
+Expected result: `0% packet loss`.
+
+### SSH
 
 ```bash
 ssh pi@10.55.0.2
 ```
 
-Wi-Fi and Tailscale were intentionally left enabled as fallbacks during
-testing. Turning Wi-Fi off is a separate handoff step and should only happen
-when someone is physically present with working Ethernet SSH.
+If using the current service key from Reid's Mac:
 
-Mac Internet Sharing has not been proven for this installation. For service
-updates, the preferred path is to push the release bundle from the Mac to the
-Pi over the verified Ethernet SSH link. The detailed procedure is in
-[NETWORKING.md](NETWORKING.md).
+```bash
+ssh -i ~/.ssh/linux_desktop pi@10.55.0.2
+```
+
+### Push An Update From The Mac
+
+For normal field service, the Mac should supply the release files. The Pi does
+not need internet access for this workflow.
+
+```bash
+rsync -av ./release/ pi@10.55.0.2:/home/pi/conway-garden-controller/
+ssh pi@10.55.0.2 'cd ~/conway-garden-controller && ./scripts/install.sh'
+```
+
+After the install command, verify the services:
+
+```bash
+ssh pi@10.55.0.2 'systemctl status matrix-controller --no-pager'
+ssh pi@10.55.0.2 'systemctl status matrix-led --no-pager'
+```
+
+### Wi-Fi And Internet Sharing
+
+The Pi does not need Wi-Fi or Mac Internet Sharing for Ethernet SSH or for a
+push-from-Mac code update. Internet Sharing is only needed if the Pi itself
+must download from the internet, such as `git pull`, `apt install`, or
+`pip install`.
+
+Mac Internet Sharing has not been proven for this installation. Do not make it
+part of the normal service path unless a future forced-route test proves it.
+
+To turn Pi Wi-Fi off after Ethernet SSH is confirmed:
+
+```bash
+ssh -i ~/.ssh/linux_desktop pi@10.55.0.2 'sudo nmcli radio wifi off'
+```
+
+To turn Pi Wi-Fi back on:
+
+```bash
+ssh -i ~/.ssh/linux_desktop pi@10.55.0.2 'sudo nmcli radio wifi on'
+```
+
+The detailed network procedure and test record are in [NETWORKING.md](NETWORKING.md).
 
 ## Verified Snapshot
 
