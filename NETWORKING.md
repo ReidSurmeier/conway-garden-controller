@@ -118,6 +118,42 @@ ssh pi@10.55.0.2
 
 Codex can be run on the Mac and use that SSH target directly.
 
+## Product Service Workflow
+
+For field service or exhibition support, direct Ethernet SSH is enough when
+the technician's Mac supplies the update payload. The Pi does not need its own
+internet connection for a Mac-pushed code update.
+
+Recommended product flow:
+
+1. Connect the Mac USB Ethernet adapter to the Pi.
+2. Confirm the Mac can reach `pi@10.55.0.2`.
+3. Copy the release bundle from the Mac to the Pi over SSH.
+4. Run the install or restart command over the same SSH session.
+
+Example:
+
+```bash
+rsync -av ./release/ pi@10.55.0.2:/home/pi/conway-garden-controller/
+ssh pi@10.55.0.2 'cd ~/conway-garden-controller && ./scripts/install.sh'
+```
+
+Mac Internet Sharing is only required when the Pi must download from the
+internet itself, such as:
+
+```text
+git pull
+apt install / apt upgrade
+pip install
+container image pulls
+OS package or firmware updates
+```
+
+Do not make Internet Sharing part of the normal product service path unless
+the release procedure explicitly depends on Pi-side downloads. A push-from-Mac
+release bundle is simpler and more reliable because Ethernet SSH has already
+been proven while Mac Internet Sharing has not.
+
 ## Disabling Wi-Fi After Ethernet Works
 
 After direct Ethernet SSH works:
