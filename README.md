@@ -128,6 +128,45 @@ GPIO numbers are BCM numbers.
 | AHT20 SDA | 2 | 3 | I2C data, address `0x38` |
 | AHT20 SCL | 3 | 5 | I2C clock |
 
+## AHT20 Enclosure Sensor
+
+The Adafruit AHT20 is installed as an enclosure temperature/humidity monitor.
+It measures the air inside the box, which is more useful for PSU, battery, and
+display-electronics risk than the Pi CPU temperature alone.
+
+The AHT20 uses the Pi I2C bus:
+
+```text
+AHT20 VIN/VCC -> Pi physical pin 1, 3.3 V
+AHT20 GND     -> Pi physical pin 6, ground
+AHT20 SDA     -> Pi physical pin 3, GPIO2/SDA1
+AHT20 SCL     -> Pi physical pin 5, GPIO3/SCL1
+```
+
+I2C must be enabled in `/boot/firmware/config.txt`:
+
+```text
+dtparam=i2c_arm=on
+```
+
+The health snapshot logs the sensor when present:
+
+```bash
+journalctl -t conway-health -n 10 --no-pager
+```
+
+Expected AHT20 fields:
+
+```text
+enclosure_temp=20.9C, enclosure_humidity=45.2%RH
+```
+
+The AHT20 should be treated as a software safety input, not the only safety
+device. A future automatic protection pass should warn at sustained enclosure
+temperatures around `40C`, stop the display side around `45C`, require cooldown
+below about `38C` before restart, and still use a physical thermal cutoff for
+true hardware safety.
+
 Current UPS configuration:
 
 ```yaml

@@ -117,7 +117,51 @@ GPIO numbers are BCM numbers.
 The controller config is `/etc/matrix-controller/controller.yaml`; the repo
 snapshot is `config/controller.yaml`.
 
-## 7. Software Stack
+## 7. Enclosure Temperature Sensor
+
+An Adafruit AHT20 is wired to the Pi I2C bus and is used for enclosure
+temperature/humidity monitoring.
+
+| Signal | Pi header pin | Notes |
+|---|---:|---|
+| VIN/VCC | 1 | 3.3 V |
+| GND | 6 | Ground |
+| SDA | 3 | GPIO2/SDA1 |
+| SCL | 5 | GPIO3/SCL1 |
+
+Runtime requirements:
+
+- `/boot/firmware/config.txt` contains `dtparam=i2c_arm=on`.
+- AHT20 appears on I2C bus 1 at address `0x38`.
+- `conway-health.sh` logs `enclosure_temp=<value>C` and
+  `enclosure_humidity=<value>%RH` when the sensor is present.
+- The sensor is optional for boot: if it is unplugged, the health check should
+  continue without failing the whole artwork.
+
+Short active-display test on 2026-05-15:
+
+```text
+Duration:         about 12.6 minutes
+Enclosure temp:  23.36C -> 24.70C
+Pi CPU temp:     40.2C -> 50.7C
+Humidity:        39.99%RH -> 37.66%RH
+Throttling:      0x0 throughout
+Failed units:    0 throughout
+```
+
+Safety policy recommendation:
+
+- `>= 40C` sustained enclosure temperature: warning.
+- `>= 45C` sustained enclosure temperature: stop `matrix-led.service` and turn
+  the relay/display side off.
+- Restart lockout should remain until the enclosure cools below about `38C`.
+- `>= 55C` sustained enclosure temperature, or Pi CPU near `80C`, should be
+  treated as a shutdown condition.
+- Do not rely on the AHT20/software path as the only safety device. A physical
+  thermal switch or thermal fuse near the PSU/battery area is the correct
+  hardware backstop for fire/electrical protection.
+
+## 8. Software Stack
 
 | Layer | Current value |
 |---|---|
@@ -130,7 +174,7 @@ snapshot is `config/controller.yaml`.
 | Network manager | NetworkManager |
 | Remote access | SSH, Tailscale during service; target client state is direct Ethernet SSH |
 
-## 8. Runtime Files
+## 9. Runtime Files
 
 | Runtime path | Meaning |
 |---|---|
@@ -147,7 +191,7 @@ snapshot is `config/controller.yaml`.
 Snapshots of these files are committed under `system/`, `kiosk/`, `config/`,
 and `health/`.
 
-## 9. Startup Sequence
+## 10. Startup Sequence
 
 At boot:
 
@@ -177,7 +221,7 @@ When wall power is lost:
 3. Controller stops display service, turns relay OFF, and runs systemd
    poweroff.
 
-## 10. Display Mapping
+## 11. Display Mapping
 
 See `DISPLAY_MAPPING.md` for detailed notes. Current app geometry:
 
@@ -194,22 +238,24 @@ The sender-card issue was resolved outside the app. If future symptoms look
 like stretched pixels, first verify NovaStar sender/receiver mapping before
 changing the web app.
 
-## 11. Maintenance
+## 12. Maintenance
 
 | Cadence | Task |
 |---|---|
 | Each install | Verify START and STOP buttons |
 | Each install | Verify `sudo pinctrl get 6` is HIGH on wall power |
+| Each install | Confirm the AHT20 health log includes enclosure temp/humidity |
 | Each install | Unplug wall power once and confirm safe shutdown if commissioning |
 | Monthly | Inspect cables, ribbons, fuses, relay terminals, and panel seating |
 | Monthly | Read `journalctl -t conway-health --since "30 days ago"` |
+| Monthly | Review enclosure temperature trend from `conway-health` |
 | Monthly | Confirm `systemctl --failed` returns zero units |
 | Monthly | Confirm `/etc/apt/apt.conf.d/20auto-upgrades` still disables apt periodic work |
 | On change | Commit code/config, update docs, and make a gold image |
 | Annually | Boot-test spare SD card or image |
 | 5 years | Replace SD card proactively or migrate to SSD |
 
-## 12. Troubleshooting
+## 13. Troubleshooting
 
 **Buttons do nothing**
 Check `systemctl status matrix-controller` and
@@ -239,7 +285,7 @@ pages in `kiosk-app/` and the notes in `DISPLAY_MAPPING.md`.
 **SSH unavailable after Wi-Fi is disabled**
 Use direct Ethernet fallback from `NETWORKING.md`.
 
-## 13. Recovery
+## 14. Recovery
 
 See `RECOVERY.md` for blank-card rebuild. The short version:
 
@@ -251,7 +297,7 @@ See `RECOVERY.md` for blank-card rebuild. The short version:
 6. Verify `matrix-controller`, `conway-health.timer`, GPIO 6, START/STOP, and
    display mapping.
 
-## 14. Migration Notes
+## 15. Migration Notes
 
 - Pi 5 uses `/dev/gpiochip4`; a Pi 4 or later replacement may need code
   changes.
@@ -263,7 +309,7 @@ See `RECOVERY.md` for blank-card rebuild. The short version:
 - If the X1201 is replaced, preserve the behavior "GPIO HIGH = wall power OK,
   GPIO LOW = wall power lost" or update code/config and retest shutdown.
 
-## 15. Archive Guidance
+## 16. Archive Guidance
 
 Keep these together as the artwork package:
 
