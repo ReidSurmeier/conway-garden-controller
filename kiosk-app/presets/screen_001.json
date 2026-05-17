@@ -1,0 +1,123 @@
+{
+  "canvas": {
+    "isFullscreen": false,
+    "width": 312,
+    "height": 416,
+    "xOffset": 416,
+    "yOffset": 0,
+    "rotation": 90
+  },
+  "render": {
+    "pointSize": 1,
+    "fps": 30,
+    "postProcessing": true,
+    "mncaUpdateRate": 3,
+    "maxPointCount": 3900
+  },
+  "pointCloud": {
+    "modelName": "vermont_radial",
+    "numChunk": 18,
+    "maxDisplayPoints": null,
+    "enableDynamicLoading": true,
+    "maxLoadedChunks": 10,
+    "viewConeAngle": 70,
+    "loadBufferAngle": 20,
+    "leftBias": 15
+  },
+  "scene": {
+    "hideGarden": false,
+    "hideBoxes": true
+  },
+  "camera": {
+    "axonScaleFactor": 20,
+    "camFar": 2000,
+    "speedBase": 0,
+    "speedFine": 0.01,
+    "minutesPerRot": 540,
+    "initialPosition": {
+      "x": 0,
+      "y": -100,
+      "z": 10
+    },
+    "isInteractiveMode": false
+  },
+  "cameraBoid": {
+    "maxSpeed": 10,
+    "bounds": {
+      "x": { "min": -40, "max": 40 },
+      "y": { "min": -110, "max": -30 },
+      "z": { "min": 20, "max": 35 }
+    },
+    "useDynamicYBounds": true,
+    "yMinAtLowestZ": -90
+  },
+  "lookBoid": {
+    "maxSpeed": 10,
+    "bounds": {
+      "x": { "min": -7, "max": 7 },
+      "y": { "min": -40.5, "max": -24.5 },
+      "z": { "min": -2.5, "max": 1 }
+    }
+  },
+  "fairy": {
+    "count": 50,
+    "maxSpeed": 5000,
+    "range": 2,
+    "bounds": {
+      "x": { "min": -25, "max": 25 },
+      "y": { "min": -50, "max": 0 },
+      "z": { "min": 0, "max": 20 }
+    }
+  },
+  "conway": {
+    "transparentBackground": true,
+    "colorBlend": 1.0,
+    "colorSaturation": 1.5,
+    "luminanceThreshold": 0.05,
+    "hueFilter": 0.5,
+    "hueRange": 1.0,
+    "saturationFilter": 0.5,
+    "saturationRange": 1.0,
+    "luminanceFilter": 0.5,
+    "luminanceRange": 1.0,
+    "renderPassInterval": 20.0,
+    "rCycles": 1,
+    "shaderOnTime": 20.0,
+    "eventTime": 240,
+    "dissolveTime": 2.0,
+    "clearOnRenderPass": true,
+    "autoRandomize": true,
+    "randomizeHSLFilters": true,
+    "usePresetRandomization": true,
+    "cycleCount": 0,
+    "innerRadius": 1.5,
+    "outerRadius": 1.5,
+    "birthMin": 3.0,
+    "birthMax": 3.0,
+    "birthOuterLimit": 20.0,
+    "deathMin": 2.0,
+    "deathMax": 3.0,
+    "deathOuterLimit": 20.0
+  },
+  "analysis": {
+    "enabled": false,
+    "performanceMode": false,
+    "frameAnalysisInterval": 1,
+    "sampleSize": 64,
+    "historyLength": 30,
+    "enableRealTimeMetrics": false,
+    "enableAutoClassification": false,
+    "fpsThreshold": 30,
+    "fpsCheckInterval": 60,
+    "lowFpsFrameCount": 0,
+    "lowFpsThreshold": 90,
+    "autoDisableOnLowFps": true
+  },
+  "_metadata": {
+    "name": "Screen 001",
+    "description": "Conway Garden screen_001 deploy preset. Calibrated to 312x416 portrait, rotated 90deg, xOffset 416 (NovaStar MRV412 mapping). vermont_radial point cloud (18 radial chunks, dynamic loading, view cone 90deg = 5 chunks in memory). axonScaleFactor 20 (tighter framing for sparser cloud vs gradient default of 100). Conway effect cycles curated MNCA presets every 240s.",
+    "version": "1.1.0",
+    "author": "Clement Valla",
+    "created": "2026-05-15"
+  }
+}
