@@ -1,0 +1,325 @@
+metadata:
+  title: Conway Garden Control Box - Simplified Client Overview
+  revision: 0.2
+  date: 2026-07-07
+  authors:
+    Created:
+      name: Codex
+      date: 2026-07-07
+  notes: >
+    Simplified WireViz diagram for client review. This intentionally omits
+    internal split points, spare parts, tools, wire stock, mounting hardware,
+    and pin-level Ethernet detail. The fuse box is shown protecting the Pi /
+    X1201 feed, the NovaStar MSD300-1 sender, the NV3210 receiver, and the
+    cooling fan. LED panels are shown as ribbon-cable outputs from the
+    NV3210, not as fuse-box outputs.
+
+options:
+  bgcolor: WH
+  bgcolor_node: WH
+  bgcolor_connector: "#F8FAFC"
+  bgcolor_cable: "#FFFFFF"
+  color_mode: SHORT
+  fontname: DejaVu Sans
+  mini_bom_mode: false
+
+connectors:
+  AC_IN:
+    type: 120 V AC power input
+    subtype: 3-prong cable into the enclosure
+    pinlabels: [POWER_IN, GROUND_BOND]
+    notes: Wall power enters the box through the fused inlet / breaker assembly.
+
+  AC_PROTECT:
+    type: Power inlet and breaker
+    subtype: fused shutoff for the control box
+    pinlabels: [POWER_IN, GROUND_BOND, ALWAYS_ON_AC, SWITCHED_AC_FEED]
+    notes: Simplified as one client-facing protection block.
+
+  PSU_PI:
+    type: MEAN WELL LRS-50-5
+    subtype: small 5 V supply for the controller side
+    pinlabels: [AC_IN, GROUND, 5V_OUT, GND_OUT]
+
+  RELAY:
+    type: LCLCTC DIN rail solid-state relay
+    subtype: Pi-controlled display-power switch
+    pinlabels: [AC_IN, AC_OUT, GROUND_PASS, CTRL_IN]
+
+  PSU_DISPLAY:
+    type: MEAN WELL LRS-150F-5
+    subtype: larger 5 V supply for display electronics
+    pinlabels: [AC_IN, GROUND, 5V_OUT, GND_OUT]
+
+  FUSE_BOX:
+    type: Blue Sea Systems 5025 fuse box
+    subtype: protected 5 V electronics branches
+    pinlabels:
+      - PI_5V_IN
+      - PI_GND_IN
+      - PI_FUSED_5V
+      - PI_GND
+      - DISPLAY_5V_IN
+      - DISPLAY_GND_IN
+      - MSD300_FUSED_5V
+      - MSD300_GND
+      - NV3210_FUSED_5V
+      - NV3210_GND
+      - FAN_FUSED_5V
+      - FAN_GND
+    loops:
+      - [1, 3]
+      - [2, 4]
+      - [5, 7]
+      - [6, 8]
+      - [5, 9]
+      - [6, 10]
+      - [5, 11]
+      - [6, 12]
+    notes: Protects the Pi/X1201, MSD300-1, NV3210, and fan branches. It does not feed the LED panels.
+
+  X1201:
+    type: Geekworm X1201
+    subtype: battery backup for Raspberry Pi
+    pinlabels: [5V_IN, GND_IN, UPS_5V_OUT, UPS_GND_OUT, POWER_LOSS_SIGNAL, BATTERIES]
+
+  BATTERIES:
+    type: Samsung 30Q cells
+    subtype: two 18650 backup batteries
+    pinlabels: [BATTERY_PAIR]
+
+  RPI:
+    type: Raspberry Pi 5
+    subtype: garden controller
+    pinlabels: [5V_IN, GND_IN, POWER_LOSS_SIGNAL, GPIO_BUTTONS, GPIO_RELAY, MICRO_HDMI]
+
+  BUTTONS:
+    type: APIELE push buttons
+    subtype: start and stop controls
+    pinlabels: [START_STOP]
+
+  MSD300:
+    type: NovaStar MSD300-1
+    subtype: DVI sender
+    pinlabels: [DVI_IN, 5V_IN, GND_IN, ETHERNET_OUT]
+
+  NV3210:
+    type: NovaStar NV3210
+    subtype: receiver card
+    pinlabels: [ETHERNET_IN, 5V_IN, GND_IN, RIBBON_OUT_A, RIBBON_OUT_B]
+
+  PANELS:
+    type: LED panels
+    subtype: panel stack / display face
+    pinlabels: [RIBBON_IN_A, RIBBON_IN_B]
+
+  FAN:
+    type: Easycargo 30 mm fan
+    subtype: enclosure cooling
+    pinlabels: [5V_IN, GND_IN]
+
+cables:
+  AC_CABLE:
+    type: 120 V AC input
+    wirecount: 2
+    colors: [BN, GNYE]
+    wirelabels: [wall_power, safety_ground]
+
+  AC_TO_PI_SUPPLY:
+    type: always-on AC feed
+    wirecount: 2
+    colors: [BN, GNYE]
+    wirelabels: [always_on_power, safety_ground]
+
+  AC_TO_RELAY:
+    type: switched display AC feed
+    wirecount: 2
+    colors: [BN, GNYE]
+    wirelabels: [display_power_feed, safety_ground]
+
+  AC_RELAY_TO_DISPLAY_SUPPLY:
+    type: relay-switched AC output
+    wirecount: 2
+    colors: [BN, GNYE]
+    wirelabels: [switched_power, safety_ground]
+
+  PI_SUPPLY_TO_FUSE_BOX:
+    type: 5 V controller feed into fuse box
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [controller_5V, controller_ground]
+
+  DISPLAY_SUPPLY_TO_FUSE_BOX:
+    type: 5 V display-electronics feed into fuse box
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [display_electronics_5V, display_electronics_ground]
+
+  FUSE_BOX_TO_X1201:
+    type: protected 5 V feed to UPS board
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [protected_pi_5V, pi_ground]
+
+  X1201_TO_PI:
+    type: battery-backed Pi power and power-loss signal
+    wirecount: 3
+    colors: [RD, BK, YE]
+    wirelabels: [backup_5V, ground, wall_power_status]
+
+  BATTERY_LINK:
+    type: X1201 battery connection
+    wirecount: 1
+    colors: [PK]
+    wirelabels: [battery_pair]
+
+  BUTTON_HARNESS:
+    type: start / stop button harness
+    wirecount: 1
+    colors: [GN]
+    wirelabels: [button_signals]
+
+  RELAY_CONTROL:
+    type: Pi relay-control signal
+    wirecount: 1
+    colors: [YE]
+    wirelabels: [relay_on_off]
+
+  FUSE_BOX_TO_MSD300:
+    type: protected 5 V feed to MSD300-1
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [msd300_5V, msd300_ground]
+
+  FUSE_BOX_TO_NV3210:
+    type: protected 5 V feed to NV3210
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [nv3210_5V, nv3210_ground]
+
+  FUSE_BOX_TO_FAN:
+    type: protected 5 V fan feed
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [fan_5V, fan_ground]
+
+  HDMI_TO_DVI:
+    type: micro HDMI to DVI cable / adapter
+    wirecount: 1
+    colors: [BK]
+    wirelabels: [video_to_msd300]
+    shield: true
+
+  MSD300_TO_NV3210:
+    type: Ethernet cable
+    wirecount: 1
+    colors: [BU]
+    wirelabels: [novastar_data]
+    notes: Shown as one complete Ethernet cable, not broken out into pairs.
+
+  RIBBON_TO_PANELS:
+    type: LED panel ribbon cables
+    wirecount: 2
+    colors: [GY, GY]
+    wirelabels: [ribbon_a, ribbon_b]
+
+connections:
+  - - AC_IN: [1, 2]
+    - AC_CABLE: [1, 2]
+    - AC_PROTECT: [1, 2]
+
+  - - AC_PROTECT: [3, 2]
+    - AC_TO_PI_SUPPLY: [1, 2]
+    - PSU_PI: [1, 2]
+
+  - - AC_PROTECT: [4, 2]
+    - AC_TO_RELAY: [1, 2]
+    - RELAY: [1, 3]
+
+  - - RELAY: [2, 3]
+    - AC_RELAY_TO_DISPLAY_SUPPLY: [1, 2]
+    - PSU_DISPLAY: [1, 2]
+
+  - - PSU_PI: [3, 4]
+    - PI_SUPPLY_TO_FUSE_BOX: [1, 2]
+    - FUSE_BOX: [1, 2]
+
+  - - FUSE_BOX: [3, 4]
+    - FUSE_BOX_TO_X1201: [1, 2]
+    - X1201: [1, 2]
+
+  - - X1201: [3, 4, 5]
+    - X1201_TO_PI: [1, 2, 3]
+    - RPI: [1, 2, 3]
+
+  - - BATTERIES: 1
+    - BATTERY_LINK: 1
+    - X1201: 6
+
+  - - RPI: 4
+    - BUTTON_HARNESS: 1
+    - BUTTONS: 1
+
+  - - RPI: 5
+    - RELAY_CONTROL: 1
+    - RELAY: 4
+
+  - - PSU_DISPLAY: [3, 4]
+    - DISPLAY_SUPPLY_TO_FUSE_BOX: [1, 2]
+    - FUSE_BOX: [5, 6]
+
+  - - FUSE_BOX: [7, 8]
+    - FUSE_BOX_TO_MSD300: [1, 2]
+    - MSD300: [2, 3]
+
+  - - FUSE_BOX: [9, 10]
+    - FUSE_BOX_TO_NV3210: [1, 2]
+    - NV3210: [2, 3]
+
+  - - FUSE_BOX: [11, 12]
+    - FUSE_BOX_TO_FAN: [1, 2]
+    - FAN: [1, 2]
+
+  - - RPI: 6
+    - HDMI_TO_DVI: 1
+    - MSD300: 1
+
+  - - MSD300: 4
+    - MSD300_TO_NV3210: 1
+    - NV3210: 1
+
+  - - NV3210: [4, 5]
+    - RIBBON_TO_PANELS: [1, 2]
+    - PANELS: [1, 2]
+
+additional_bom_items:
+  - description: Geekworm X1201 UPS HAT
+    qty: 1
+    designators: [X1201]
+  - description: Samsung 30Q 18650 flat-top cell
+    qty: 2
+    designators: [BATTERIES]
+  - description: MEAN WELL LRS-50-5 5 V power supply
+    qty: 1
+    designators: [PSU_PI]
+  - description: MEAN WELL LRS-150F-5 5 V power supply
+    qty: 1
+    designators: [PSU_DISPLAY]
+  - description: Blue Sea Systems 5025 fuse box
+    qty: 1
+    designators: [FUSE_BOX]
+  - description: NovaStar MSD300-1 sender
+    qty: 1
+    designators: [MSD300]
+  - description: NovaStar NV3210 receiver
+    qty: 1
+    designators: [NV3210]
+  - description: Micro HDMI to DVI adapter cable
+    qty: 1
+    designators: [HDMI_TO_DVI]
+  - description: Ethernet cable from MSD300-1 to NV3210
+    qty: 1
+    designators: [MSD300_TO_NV3210]
+  - description: LED panel ribbon cables
+    qty: 2
+    designators: [RIBBON_TO_PANELS]

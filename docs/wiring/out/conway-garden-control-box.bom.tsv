@@ -1,0 +1,79 @@
+Id	Description	Qty	Unit	Designators	Manufacturer	MPN
+1	10 Gb Ethernet cable	1		W_NOVASTAR_CAT		
+2	16 gauge wire pack, primary power wiring	2		W_AC_CORD, W_DISPLAY_DC_IN, W_L_TB_TO_SSR		
+3	20 AWG stranded wire	1		W_FAN_PWR, W_SSR_CTRL, W_START, W_STOP		
+4	3M cable holders	1		W_AC_CORD, W_NOVASTAR_CAT, W_SERVICE_ETH		
+5	6 in USB-C cable	1		W_X1201_PWR		
+6	Cable, 10 Gb / Cat6 Ethernet cable used as NovaStar data link, 8 x 24 AWG	3	ft	W_NOVASTAR_CAT		
+7	Cable, 120 VAC input cable, 3 x 16 AWG	24	in	W_AC_CORD		
+8	Cable, 5 V always-on supply feed, 2 x 16 AWG	10	in	W_5V_AON_IN		
+9	Cable, 5 V fan branch, 2 x 20 AWG	16	in	W_FAN_PWR		
+10	Cable, 6 in USB-C / 5 V UPS input lead, 2 x 20 AWG	6	in	W_X1201_PWR		
+11	Cable, Duttek slim micro HDMI + CableCreation HDMI-to-DVI link, 1 x 30 AWG shielded	12	in	W_HDMI_DVI		
+12	Cable, GPIO button harness, 2 x 20 AWG	36	in	W_START, W_STOP		
+13	Cable, GPIO relay-control harness, 2 x 20 AWG	16	in	W_SSR_CTRL		
+14	Cable, Geekworm PCIe M.2 flat-flex link, 1 x 30 AWG	3	in	W_PCIE_FFC		
+15	Cable, LED/display negative returns, 3 x 16 AWG	18	in	W_LED_RETURNS		
+16	Cable, LED/display positive distribution, 3 x 16 AWG	18	in	W_UN1_TO_LED		
+17	Cable, LRS-150F to DC fuse block input, 2 x 16 AWG	14	in	W_DISPLAY_DC_IN		
+18	Cable, NovaStar sender 5 V branch, 2 x 20 AWG	18	in	W_NOVASTAR_TX_PWR		
+19	Cable, UGreen Ethernet extension cable for direct service SSH, 8 x 24 AWG	1	ft	W_SERVICE_ETH		
+20	Cable, X1201 battery bay A, 2 x 16 AWG	1	in	W_BAT1		
+21	Cable, X1201 battery bay B, 2 x 16 AWG	1	in	W_BAT2		
+22	Cable, X1201 to Pi pogo/GPIO link representation, 3 x 20 AWG	2	in	W_X1201_TO_PI		
+23	CableCreation HDMI to DVI adapter	1		W_HDMI_DVI		
+24	Connector, 120 VAC 3-prong input cable, field/service power input, 3 pins, GY	1		AC_PLUG		
+25	Connector, 5 V always-on terminal block, LRS-50-5 output distribution, 4 pins, RD	1		TB_5V_AON		
+26	Connector, APIELE push button, START, normally-open momentary contact, 2 pins	1		START_BTN	APIELE	
+27	Connector, APIELE push button, STOP, normally-open momentary contact, 2 pins	1		STOP_BTN	APIELE	
+28	Connector, Blue Sea Systems 5025 ST blade fuse block, 6 circuits with negative bus and cover, 10 pins	1		FB1	Blue Sea Systems	5025
+29	Connector, DIN rail neutral terminal block, 120 VAC neutral distribution, 3 pins, BU	1		TB_N		
+30	Connector, Easycargo 30 mm fan, 5 V enclosure fan, 2 pins	1		FAN1		
+31	Connector, Electric split DIN rail terminal block, 120 VAC line distribution, 3 pins, BN	1		TB_L		
+32	Connector, Enclosure earth bonding stud, GNYE	1				
+33	Connector, Fuse inlet, fused/switching panel inlet, 6 pins	1		FI1	Bussmann	3A fuse fitted where load calculation permits
+34	Connector, GeeekPi GPIO screw terminal on Raspberry Pi 5, verified controller pins, 9 pins	1		RPI_GPIO		
+35	Connector, Geekworm PCIe M.2 adapter, Pi 5 storage expansion, 1 pins	1		M2_HAT	Geekworm	
+36	Connector, Geekworm X1201 UPS HAT, Raspberry Pi 5 UPS with Samsung 30Q cells, 9 pins	1		X1201	Geekworm	X1201
+37	Connector, Green DIN PE terminal block, case-bonded protective earth, 6 pins, GNYE	1		TB_PE		
+38	Connector, LCLCTC DIN rail solid-state relay, line-side switching for display power supply, 4 pins	1		SSR1		
+39	Connector, LED panel and NovaStar receiver power landing, field wiring terminal group, 6 pins	1		LED_LOADS		
+40	Connector, MEAN WELL LRS-150F-5, 5 V display/LED power supply, 5 pins	1		PSU_DISPLAY	MEAN WELL	LRS-150F-5
+41	Connector, MEAN WELL LRS-50-5, 5 V, 10 A, always-on Pi/UPS power supply, 5 pins	1		PSU_AON	MEAN WELL	LRS-50-5
+42	Connector, Mini circuit breaker, single-pole line protection / disconnect, 2 pins	1		CB1		
+43	Connector, NovaStar MRV412 receiver, LED panel receiver card, 10 pins	1		NOVASTAR_RX		
+44	Connector, NovaStar MSD300-1 sender, DVI input, RJ45 LED data output, 11 pins	1		NOVASTAR_TX		
+45	Connector, Raspberry Pi 5 AV/PCIe side, display and storage links, 2 pins	1		RPI_AV		
+46	Connector, Raspberry Pi 5 Ethernet port, 8 pins	1		PI_ETH		
+47	Connector, Samsung 30Q, 3.7 V flat-top real 3000 mAh cell, 2 pins	2		BAT1, BAT2		
+48	Connector, UGreen Ethernet extension cable, client service SSH jack, 8 pins	1		SERVICE_JACK		
+49	Connector, Uncell 1 input 6 output terminal block, fused 5 V LED/display positive distribution, 7 pins	1		UN1		
+50	Crimping tool kit	1				
+51	Duttek extreme slim micro HDMI cable	1		W_HDMI_DVI		
+52	Ethernet cable	1		W_NOVASTAR_CAT		
+53	Fuse assortment, ATC/ATO blade fuses	1		FB1		
+54	Fuse box / protective enclosure for service fuses	1		FB1, FI1		
+55	Fuse, Bussmann 3 A	2		FI1		
+56	GPIO cable, male to female	1		RPI_GPIO		
+57	M3 screw assortment	1		CASE_STUD, PSU_AON, PSU_DISPLAY, SSR1		
+58	Micro HDMI to DVI connector	1		W_HDMI_DVI		
+59	ProTapes UGlue	1		FAN1, SERVICE_JACK		
+60	Pudkle 16 gauge wire	1		W_PE_AON, W_PE_CASE, W_PE_DISPLAY		
+61	RLEC / lever-nut terminal accessories and ferrules	1		TB_L, TB_N, TB_PE, UN1		
+62	RLEC 2 pc 10-position terminal block set	1		TB_L, TB_N, TB_PE		
+63	Spare Geekworm X1201 units from supplied parts list	2		X1201		
+64	Spare LCLCTC DIN rail solid-state relay from supplied parts list	1		SSR1		
+65	Terminal block, generic DIN rail service terminals	1		TB_5V_AON, TB_L, TB_N, TB_PE		
+66	UGreen Ethernet extension cable	1		SERVICE_JACK, W_SERVICE_ETH		
+67	Wire, 120 VAC hot jumper, 16 AWG, BN	16	in	W_L_CB_TO_TB, W_L_FUSED_TO_CB		
+68	Wire, 120 VAC neutral jumper, 16 AWG, BU	8	in	W_N_INLET_TO_TB		
+69	Wire, always-on PSU earth bond, 16 AWG, GNYE	12	in	W_PE_AON		
+70	Wire, always-on PSU neutral feed, 16 AWG, BU	12	in	W_N_TB_TO_AON		
+71	Wire, always-on hot feed, 16 AWG, BN	12	in	W_L_TB_TO_AON		
+72	Wire, display PSU earth bond, 16 AWG, GNYE	12	in	W_PE_DISPLAY		
+73	Wire, display PSU neutral feed, 16 AWG, BU	12	in	W_N_TB_TO_DISPLAY		
+74	Wire, enclosure bond, 16 AWG, GNYE	8	in	W_PE_CASE		
+75	Wire, fused display positive feed, 16 AWG, RD	8	in	W_FB1_TO_UN1		
+76	Wire, protective earth jumper, 16 AWG, GNYE	8	in	W_PE_INLET_TO_TB		
+77	Wire, switched-display hot feed, 16 AWG, BN	10	in	W_L_TB_TO_SSR		
+78	Wire, switched-display hot output, 16 AWG, BN	12	in	W_L_SSR_TO_DISPLAY		

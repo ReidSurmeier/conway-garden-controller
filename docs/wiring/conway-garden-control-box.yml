@@ -1,0 +1,741 @@
+metadata:
+  title: Conway Pointcloud Garden - Client Control Box Wiring
+  revision: 0.1
+  date: 2026-07-07
+  authors:
+    Created:
+      name: Codex
+      date: 2026-07-07
+  pn: CONWAY-WIRING-CTRLBOX-001
+  notes: >
+    Client-facing planning drawing for the Conway Pointcloud Garden control
+    box. It follows the verified controller repository behavior: START on
+    BCM18, STOP on BCM19, relay/SSR control on BCM20, and Geekworm X1201 PLD
+    on BCM6. Mains wiring is shown from the user's stated 120 VAC three-prong
+    input path: line to a terminal split feeding the relay-switched display
+    supply and the always-on 5 V supply; neutral to a neutral terminal feeding
+    both supplies; protective earth to a green case-bonded terminal.
+    This drawing is documentation, not permission to energize the assembly.
+    Final wire gauge, fuse ratings, terminal torque, enclosure bonding, strain
+    relief, SSR heat sinking, and listing/code compliance must be checked by a
+    qualified electrician before client handoff.
+
+options:
+  bgcolor: WH
+  bgcolor_node: WH
+  bgcolor_connector: "#F8FAFC"
+  bgcolor_cable: "#FFFFFF"
+  bgcolor_bundle: "#F4F7FB"
+  color_mode: SHORT
+  fontname: DejaVu Sans
+  mini_bom_mode: false
+
+connectors:
+  AC_PLUG:
+    type: 120 VAC 3-prong input cable
+    subtype: field/service power input
+    pinlabels: [L_hot, N_neutral, PE_ground]
+    color: GY
+    notes: Incoming cord or cable feeding the fused inlet.
+
+  FI1:
+    type: Fuse inlet
+    subtype: fused/switching panel inlet
+    manufacturer: Bussmann
+    mpn: 3A fuse fitted where load calculation permits
+    pinlabels: [L_IN, N_IN, PE_IN, L_FUSED_OUT, N_OUT, PE_OUT]
+    loops:
+      - [2, 5]
+      - [3, 6]
+    notes: >
+      Neutral and PE are shown as pass-through loops. Line output is the fused
+      side of the inlet and then passes through CB1 before the line terminal.
+
+  CB1:
+    type: Mini circuit breaker
+    subtype: single-pole line protection / disconnect
+    pinlabels: [LINE_IN, LINE_OUT]
+    notes: Size to conductor and connected load. Do not use as PE or neutral switch.
+
+  TB_L:
+    type: Electric split DIN rail terminal block
+    subtype: 120 VAC line distribution
+    color: BN
+    pinlabels: [L_IN, L_TO_SSR_DISPLAY, L_TO_LRS50_ALWAYS_ON]
+    loops:
+      - [1, 2]
+      - [1, 3]
+    notes: User-described line split point.
+
+  TB_N:
+    type: DIN rail neutral terminal block
+    subtype: 120 VAC neutral distribution
+    color: BU
+    pinlabels: [N_IN, N_TO_LRS150_DISPLAY, N_TO_LRS50_ALWAYS_ON]
+    loops:
+      - [1, 2]
+      - [1, 3]
+    notes: User-described neutral block feeding both power supplies.
+
+  TB_PE:
+    type: Green DIN PE terminal block
+    subtype: case-bonded protective earth
+    color: GNYE
+    pinlabels: [PE_IN, CASE_STUD, LRS150_FG, LRS50_FG, DIN_RAIL_PE, SPARE_PE]
+    loops:
+      - [1, 2]
+      - [1, 3]
+      - [1, 4]
+      - [1, 5]
+      - [1, 6]
+    notes: Attached to conductive enclosure/case. Keep PE continuous and low impedance.
+
+  CASE_STUD:
+    type: Enclosure earth bonding stud
+    style: simple
+    color: GNYE
+    notes: Scrape paint/anodizing under bonding hardware where required.
+
+  SSR1:
+    type: LCLCTC DIN rail solid-state relay
+    subtype: line-side switching for display power supply
+    pinlabels: [LOAD_L_IN, LOAD_L_OUT, CTRL_PLUS, CTRL_MINUS]
+    notes: >
+      Load side switches only the hot/line feed to the LRS-150F display PSU.
+      Control side is shown from GPIO20. Verify SSR input rating; add driver
+      transistor/opto interface if the module is not Pi-GPIO compatible.
+
+  PSU_AON:
+    type: MEAN WELL LRS-50-5
+    subtype: 5 V, 10 A, always-on Pi/UPS power supply
+    manufacturer: MEAN WELL
+    mpn: LRS-50-5
+    pinlabels: [-V, +V, FG, AC_L, AC_N]
+    notes: Official LRS-50 terminal order is -V, +V, FG, AC/L, AC/N.
+
+  PSU_DISPLAY:
+    type: MEAN WELL LRS-150F-5
+    subtype: 5 V display/LED power supply
+    manufacturer: MEAN WELL
+    mpn: LRS-150F-5
+    pinlabels: [-V, +V, FG, AC_L, AC_N]
+    notes: Condensed schematic view of LRS-150F terminals. Official unit has duplicated AC/L and AC/N terminals.
+
+  TB_5V_AON:
+    type: 5 V always-on terminal block
+    subtype: LRS-50-5 output distribution
+    color: RD
+    pinlabels: [+5V_IN, 0V_IN, +5V_TO_X1201, 0V_TO_X1201]
+    loops:
+      - [1, 3]
+      - [2, 4]
+
+  X1201:
+    type: Geekworm X1201 UPS HAT
+    subtype: Raspberry Pi 5 UPS with Samsung 30Q cells
+    manufacturer: Geekworm
+    mpn: X1201
+    pinlabels:
+      - 5V_IN
+      - GND_IN
+      - UPS_5V_TO_PI
+      - UPS_GND_TO_PI
+      - PLD_TO_GPIO6
+      - BAT_A_PLUS
+      - BAT_A_MINUS
+      - BAT_B_PLUS
+      - BAT_B_MINUS
+    notes: >
+      X1201 input requires 5 V at 5 A or greater. PLD is documented in the
+      Conway controller as HIGH with wall power present and LOW on wall-power loss.
+
+  BAT1:
+    type: Samsung 30Q
+    subtype: 3.7 V flat-top real 3000 mAh cell
+    pinlabels: [PLUS, MINUS]
+    notes: Use only cells compatible with X1201 battery requirements.
+
+  BAT2:
+    type: Samsung 30Q
+    subtype: 3.7 V flat-top real 3000 mAh cell
+    pinlabels: [PLUS, MINUS]
+    notes: Install matched cells as required by the X1201.
+
+  RPI_GPIO:
+    type: GeeekPi GPIO screw terminal on Raspberry Pi 5
+    subtype: verified controller pins
+    pinlabels:
+      - PIN1_3V3
+      - PIN6_GND
+      - PIN12_GPIO18_START
+      - PIN35_GPIO19_STOP
+      - PIN38_GPIO20_RELAY
+      - PIN31_GPIO6_PLD
+      - PIN2_5V
+      - PIN9_GND
+      - PIN14_GND
+    notes: Buttons pull LOW to GND. Relay control is active high.
+
+  START_BTN:
+    type: APIELE push button
+    subtype: START, normally-open momentary contact
+    manufacturer: APIELE
+    pinlabels: ["NO", COM]
+    notes: Press connects GPIO18 to GND.
+
+  STOP_BTN:
+    type: APIELE push button
+    subtype: STOP, normally-open momentary contact
+    manufacturer: APIELE
+    pinlabels: ["NO", COM]
+    notes: Press connects GPIO19 to GND. STOP turns display side off; it does not halt the Pi.
+
+  FB1:
+    type: Blue Sea Systems 5025 ST blade fuse block
+    subtype: 6 circuits with negative bus and cover
+    manufacturer: Blue Sea Systems
+    mpn: 5025
+    pinlabels:
+      - POS_IN
+      - NEG_IN
+      - FUSE1_LED_POS
+      - FUSE2_NOVASTAR_TX_POS
+      - FUSE3_FAN_POS
+      - FUSE4_SPARE_POS
+      - NEG_LED
+      - NEG_NOVASTAR
+      - NEG_FAN
+      - NEG_SPARE
+    loops:
+      - [1, 3]
+      - [1, 4]
+      - [1, 5]
+      - [1, 6]
+      - [2, 7]
+      - [2, 8]
+      - [2, 9]
+      - [2, 10]
+    notes: Positive loops represent fused branch outputs inside the fuse block.
+
+  UN1:
+    type: Uncell 1 input 6 output terminal block
+    subtype: fused 5 V LED/display positive distribution
+    pinlabels: [IN_FROM_FUSE1, LED_PANEL_A_POS, LED_PANEL_B_POS, MRV412_POS, SPARE_POS_1, SPARE_POS_2, SPARE_POS_3]
+    loops:
+      - [1, 2]
+      - [1, 3]
+      - [1, 4]
+      - [1, 5]
+      - [1, 6]
+      - [1, 7]
+
+  LED_LOADS:
+    type: LED panel and NovaStar receiver power landing
+    subtype: field wiring terminal group
+    pinlabels: [PANEL_A_5V, PANEL_A_GND, PANEL_B_5V, PANEL_B_GND, MRV412_5V, MRV412_GND]
+    notes: Update branch count when final panel/power-lead count is confirmed.
+
+  FAN1:
+    type: Easycargo 30 mm fan
+    subtype: 5 V enclosure fan
+    pinlabels: [5V, GND]
+
+  NOVASTAR_TX:
+    type: NovaStar MSD300-1 sender
+    subtype: DVI input, RJ45 LED data output
+    pinlabels: [DVI_IN, DA_PLUS, DA_MINUS, DB_PLUS, DC_PLUS, DC_MINUS, DB_MINUS, DD_PLUS, DD_MINUS, 5V, GND]
+    notes: Sender/receiver mapping must be preserved with the display package.
+
+  NOVASTAR_RX:
+    type: NovaStar MRV412 receiver
+    subtype: LED panel receiver card
+    pinlabels: [DA_PLUS, DA_MINUS, DB_PLUS, DC_PLUS, DC_MINUS, DB_MINUS, DD_PLUS, DD_MINUS, 5V, GND]
+
+  RPI_AV:
+    type: Raspberry Pi 5 AV/PCIe side
+    subtype: display and storage links
+    pinlabels: [MICRO_HDMI0, PCIE_FFC]
+
+  PI_ETH:
+    type: Raspberry Pi 5 Ethernet port
+    pinlabels: [DA_PLUS, DA_MINUS, DB_PLUS, DC_PLUS, DC_MINUS, DB_MINUS, DD_PLUS, DD_MINUS]
+
+  SERVICE_JACK:
+    type: UGreen Ethernet extension cable
+    subtype: client service SSH jack
+    pinlabels: [DA_PLUS, DA_MINUS, DB_PLUS, DC_PLUS, DC_MINUS, DB_MINUS, DD_PLUS, DD_MINUS]
+    notes: Direct service Ethernet path documented as Mac 10.55.0.1 to Pi 10.55.0.2.
+
+  M2_HAT:
+    type: Geekworm PCIe M.2 adapter
+    subtype: Pi 5 storage expansion
+    manufacturer: Geekworm
+    pinlabels: [PCIE_FFC]
+
+cables:
+  W_AC_CORD:
+    type: 120 VAC input cable
+    gauge: 16 AWG
+    show_equiv: true
+    length: 24 in
+    colors: [BN, BU, GNYE]
+    wirelabels: [hot, neutral, ground]
+    notes: Strain-relieve at enclosure entry.
+
+  W_L_FUSED_TO_CB:
+    category: bundle
+    type: 120 VAC hot jumper
+    gauge: 16 AWG
+    show_equiv: true
+    length: 8 in
+    colors: [BN]
+    wirelabels: [fused_hot_to_breaker]
+
+  W_L_CB_TO_TB:
+    category: bundle
+    type: 120 VAC hot jumper
+    gauge: 16 AWG
+    show_equiv: true
+    length: 8 in
+    colors: [BN]
+    wirelabels: [breaker_to_line_block]
+
+  W_N_INLET_TO_TB:
+    category: bundle
+    type: 120 VAC neutral jumper
+    gauge: 16 AWG
+    show_equiv: true
+    length: 8 in
+    colors: [BU]
+    wirelabels: [neutral_to_block]
+
+  W_PE_INLET_TO_TB:
+    category: bundle
+    type: protective earth jumper
+    gauge: 16 AWG
+    show_equiv: true
+    length: 8 in
+    colors: [GNYE]
+    wirelabels: [pe_to_case_block]
+
+  W_L_TB_TO_SSR:
+    category: bundle
+    type: switched-display hot feed
+    gauge: 16 AWG
+    show_equiv: true
+    length: 10 in
+    colors: [BN]
+    wirelabels: [line_to_ssr_load]
+
+  W_L_SSR_TO_DISPLAY:
+    category: bundle
+    type: switched-display hot output
+    gauge: 16 AWG
+    show_equiv: true
+    length: 12 in
+    colors: [BN]
+    wirelabels: [ssr_to_lrs150_line]
+
+  W_L_TB_TO_AON:
+    category: bundle
+    type: always-on hot feed
+    gauge: 16 AWG
+    show_equiv: true
+    length: 12 in
+    colors: [BN]
+    wirelabels: [line_to_lrs50]
+
+  W_N_TB_TO_DISPLAY:
+    category: bundle
+    type: display PSU neutral feed
+    gauge: 16 AWG
+    show_equiv: true
+    length: 12 in
+    colors: [BU]
+    wirelabels: [neutral_to_lrs150]
+
+  W_N_TB_TO_AON:
+    category: bundle
+    type: always-on PSU neutral feed
+    gauge: 16 AWG
+    show_equiv: true
+    length: 12 in
+    colors: [BU]
+    wirelabels: [neutral_to_lrs50]
+
+  W_PE_CASE:
+    category: bundle
+    type: enclosure bond
+    gauge: 16 AWG
+    show_equiv: true
+    length: 8 in
+    colors: [GNYE]
+    wirelabels: [pe_to_case]
+
+  W_PE_DISPLAY:
+    category: bundle
+    type: display PSU earth bond
+    gauge: 16 AWG
+    show_equiv: true
+    length: 12 in
+    colors: [GNYE]
+    wirelabels: [pe_to_lrs150]
+
+  W_PE_AON:
+    category: bundle
+    type: always-on PSU earth bond
+    gauge: 16 AWG
+    show_equiv: true
+    length: 12 in
+    colors: [GNYE]
+    wirelabels: [pe_to_lrs50]
+
+  W_5V_AON_IN:
+    type: 5 V always-on supply feed
+    gauge: 16 AWG
+    show_equiv: true
+    length: 10 in
+    colors: [RD, BK]
+    wirelabels: [+5V, 0V]
+
+  W_X1201_PWR:
+    type: 6 in USB-C / 5 V UPS input lead
+    gauge: 20 AWG
+    show_equiv: true
+    length: 6 in
+    colors: [RD, BK]
+    wirelabels: [+5V_to_X1201, 0V_to_X1201]
+    notes: Use a cable/termination rated for the X1201 input current.
+
+  W_X1201_TO_PI:
+    type: X1201 to Pi pogo/GPIO link representation
+    gauge: 20 AWG
+    show_equiv: true
+    length: 2 in
+    colors: [RD, BK, YE]
+    wirelabels: [UPS_5V, UPS_GND, PLD_GPIO6]
+    notes: Physical power is via X1201 pogo pins; PLD lands on GPIO6 per verified repo configuration.
+
+  W_BAT1:
+    type: X1201 battery bay A
+    gauge: 16 AWG
+    show_equiv: true
+    length: 1 in
+    colors: [RD, BK]
+    wirelabels: [bat_plus, bat_minus]
+
+  W_BAT2:
+    type: X1201 battery bay B
+    gauge: 16 AWG
+    show_equiv: true
+    length: 1 in
+    colors: [RD, BK]
+    wirelabels: [bat_plus, bat_minus]
+
+  W_START:
+    type: GPIO button harness
+    gauge: 20 AWG
+    show_equiv: true
+    length: 18 in
+    colors: [GN, BK]
+    wirelabels: [GPIO18_start, GND_return]
+
+  W_STOP:
+    type: GPIO button harness
+    gauge: 20 AWG
+    show_equiv: true
+    length: 18 in
+    colors: [RD, BK]
+    wirelabels: [GPIO19_stop, GND_return]
+
+  W_SSR_CTRL:
+    type: GPIO relay-control harness
+    gauge: 20 AWG
+    show_equiv: true
+    length: 16 in
+    colors: [YE, BK]
+    wirelabels: [GPIO20_active_high, GND_return]
+
+  W_DISPLAY_DC_IN:
+    type: LRS-150F to DC fuse block input
+    gauge: 16 AWG
+    show_equiv: true
+    length: 14 in
+    colors: [RD, BK]
+    wirelabels: [+5V_display, 0V_display]
+
+  W_FB1_TO_UN1:
+    category: bundle
+    type: fused display positive feed
+    gauge: 16 AWG
+    show_equiv: true
+    length: 8 in
+    colors: [RD]
+    wirelabels: [fuse1_to_pos_split]
+
+  W_UN1_TO_LED:
+    type: LED/display positive distribution
+    gauge: 16 AWG
+    show_equiv: true
+    length: 18 in
+    colors: [RD, RD, RD]
+    wirelabels: [panel_a_pos, panel_b_pos, mrv412_pos]
+
+  W_LED_RETURNS:
+    type: LED/display negative returns
+    gauge: 16 AWG
+    show_equiv: true
+    length: 18 in
+    colors: [BK, BK, BK]
+    wirelabels: [panel_a_gnd, panel_b_gnd, mrv412_gnd]
+
+  W_FAN_PWR:
+    type: 5 V fan branch
+    gauge: 20 AWG
+    show_equiv: true
+    length: 16 in
+    colors: [RD, BK]
+    wirelabels: [fan_5V, fan_gnd]
+
+  W_NOVASTAR_TX_PWR:
+    type: NovaStar sender 5 V branch
+    gauge: 20 AWG
+    show_equiv: true
+    length: 18 in
+    colors: [RD, BK]
+    wirelabels: [sender_5V, sender_gnd]
+
+  W_HDMI_DVI:
+    type: Duttek slim micro HDMI + CableCreation HDMI-to-DVI link
+    gauge: 30 AWG
+    length: 12 in
+    colors: [BK]
+    wirelabels: [digital_video]
+    shield: true
+    notes: Represents micro HDMI to DVI signal chain from Pi to NovaStar sender.
+
+  W_NOVASTAR_CAT:
+    type: 10 Gb / Cat6 Ethernet cable used as NovaStar data link
+    color_code: T568B
+    wirecount: 8
+    gauge: 24 AWG
+    show_equiv: true
+    length: 3 ft
+    shield: false
+
+  W_SERVICE_ETH:
+    type: UGreen Ethernet extension cable for direct service SSH
+    color_code: T568B
+    wirecount: 8
+    gauge: 24 AWG
+    show_equiv: true
+    length: 1 ft
+    shield: false
+
+  W_PCIE_FFC:
+    type: Geekworm PCIe M.2 flat-flex link
+    gauge: 30 AWG
+    length: 3 in
+    colors: [GY]
+    wirelabels: [PCIe_FFC]
+
+connections:
+  - - AC_PLUG: [1, 2, 3]
+    - W_AC_CORD: [1, 2, 3]
+    - FI1: [1, 2, 3]
+
+  - - FI1: 4
+    - W_L_FUSED_TO_CB: 1
+    - CB1: 1
+
+  - - CB1: 2
+    - W_L_CB_TO_TB: 1
+    - TB_L: 1
+
+  - - FI1: 5
+    - W_N_INLET_TO_TB: 1
+    - TB_N: 1
+
+  - - FI1: 6
+    - W_PE_INLET_TO_TB: 1
+    - TB_PE: 1
+
+  - - TB_L: 2
+    - W_L_TB_TO_SSR: 1
+    - SSR1: 1
+
+  - - SSR1: 2
+    - W_L_SSR_TO_DISPLAY: 1
+    - PSU_DISPLAY: 4
+
+  - - TB_L: 3
+    - W_L_TB_TO_AON: 1
+    - PSU_AON: 4
+
+  - - TB_N: 2
+    - W_N_TB_TO_DISPLAY: 1
+    - PSU_DISPLAY: 5
+
+  - - TB_N: 3
+    - W_N_TB_TO_AON: 1
+    - PSU_AON: 5
+
+  - - TB_PE: 2
+    - W_PE_CASE: 1
+    - CASE_STUD
+
+  - - TB_PE: 3
+    - W_PE_DISPLAY: 1
+    - PSU_DISPLAY: 3
+
+  - - TB_PE: 4
+    - W_PE_AON: 1
+    - PSU_AON: 3
+
+  - - PSU_AON: [2, 1]
+    - W_5V_AON_IN: [1, 2]
+    - TB_5V_AON: [1, 2]
+
+  - - TB_5V_AON: [3, 4]
+    - W_X1201_PWR: [1, 2]
+    - X1201: [1, 2]
+
+  - - X1201: [3, 4, 5]
+    - W_X1201_TO_PI: [1, 2, 3]
+    - RPI_GPIO: [7, 8, 6]
+
+  - - BAT1: [1, 2]
+    - W_BAT1: [1, 2]
+    - X1201: [6, 7]
+
+  - - BAT2: [1, 2]
+    - W_BAT2: [1, 2]
+    - X1201: [8, 9]
+
+  - - RPI_GPIO: [3, 2]
+    - W_START: [1, 2]
+    - START_BTN: [1, 2]
+
+  - - RPI_GPIO: [4, 9]
+    - W_STOP: [1, 2]
+    - STOP_BTN: [1, 2]
+
+  - - RPI_GPIO: [5, 8]
+    - W_SSR_CTRL: [1, 2]
+    - SSR1: [3, 4]
+
+  - - PSU_DISPLAY: [2, 1]
+    - W_DISPLAY_DC_IN: [1, 2]
+    - FB1: [1, 2]
+
+  - - FB1: 3
+    - W_FB1_TO_UN1: 1
+    - UN1: 1
+
+  - - UN1: [2, 3, 4]
+    - W_UN1_TO_LED: [1, 2, 3]
+    - LED_LOADS: [1, 3, 5]
+
+  - - LED_LOADS: [2, 4, 6]
+    - W_LED_RETURNS: [1, 2, 3]
+    - FB1: [7, 7, 8]
+
+  - - FB1: [5, 9]
+    - W_FAN_PWR: [1, 2]
+    - FAN1: [1, 2]
+
+  - - FB1: [4, 8]
+    - W_NOVASTAR_TX_PWR: [1, 2]
+    - NOVASTAR_TX: [10, 11]
+
+  - - RPI_AV: 1
+    - W_HDMI_DVI: 1
+    - NOVASTAR_TX: 1
+
+  - - NOVASTAR_TX: [2, 3, 4, 5, 6, 7, 8, 9]
+    - W_NOVASTAR_CAT: [1-8]
+    - NOVASTAR_RX: [1-8]
+
+  - - PI_ETH: [1-8]
+    - W_SERVICE_ETH: [1-8]
+    - SERVICE_JACK: [1-8]
+
+  - - RPI_AV: 2
+    - W_PCIE_FFC: 1
+    - M2_HAT: 1
+
+additional_bom_items:
+  - description: RLEC 2 pc 10-position terminal block set
+    qty: 1
+    designators: [TB_L, TB_N, TB_PE]
+  - description: Terminal block, generic DIN rail service terminals
+    qty: 1
+    designators: [TB_L, TB_N, TB_PE, TB_5V_AON]
+  - description: Fuse box / protective enclosure for service fuses
+    qty: 1
+    designators: [FI1, FB1]
+  - description: Fuse assortment, ATC/ATO blade fuses
+    qty: 1
+    designators: [FB1]
+  - description: Fuse, Bussmann 3 A
+    qty: 2
+    designators: [FI1]
+  - description: RLEC / lever-nut terminal accessories and ferrules
+    qty: 1
+    designators: [TB_L, TB_N, TB_PE, UN1]
+  - description: 16 gauge wire pack, primary power wiring
+    qty: 2
+    designators:
+      - W_AC_CORD
+      - W_L_TB_TO_SSR
+      - W_DISPLAY_DC_IN
+  - description: Pudkle 16 gauge wire
+    qty: 1
+    designators: [W_PE_CASE, W_PE_DISPLAY, W_PE_AON]
+  - description: 20 AWG stranded wire
+    qty: 1
+    designators: [W_START, W_STOP, W_SSR_CTRL, W_FAN_PWR]
+  - description: GPIO cable, male to female
+    qty: 1
+    designators: [RPI_GPIO]
+  - description: Micro HDMI to DVI connector
+    qty: 1
+    designators: [W_HDMI_DVI]
+  - description: CableCreation HDMI to DVI adapter
+    qty: 1
+    designators: [W_HDMI_DVI]
+  - description: Duttek extreme slim micro HDMI cable
+    qty: 1
+    designators: [W_HDMI_DVI]
+  - description: Ethernet cable
+    qty: 1
+    designators: [W_NOVASTAR_CAT]
+  - description: 10 Gb Ethernet cable
+    qty: 1
+    designators: [W_NOVASTAR_CAT]
+  - description: UGreen Ethernet extension cable
+    qty: 1
+    designators: [W_SERVICE_ETH, SERVICE_JACK]
+  - description: 6 in USB-C cable
+    qty: 1
+    designators: [W_X1201_PWR]
+  - description: M3 screw assortment
+    qty: 1
+    designators: [CASE_STUD, PSU_AON, PSU_DISPLAY, SSR1]
+  - description: 3M cable holders
+    qty: 1
+    designators:
+      - W_AC_CORD
+      - W_NOVASTAR_CAT
+      - W_SERVICE_ETH
+  - description: ProTapes UGlue
+    qty: 1
+    designators: [FAN1, SERVICE_JACK]
+  - description: Crimping tool kit
+    qty: 1
+  - description: Spare Geekworm X1201 units from supplied parts list
+    qty: 2
+    designators: [X1201]
+  - description: Spare LCLCTC DIN rail solid-state relay from supplied parts list
+    qty: 1
+    designators: [SSR1]

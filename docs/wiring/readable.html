@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Conway Wiring Diagram - Readable View</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --ink: #111827;
+      --muted: #4b5563;
+      --line: #d1d5db;
+      --accent: #0f5c8c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.96);
+    }
+    h1 { margin: 0; font-size: 18px; letter-spacing: 0; }
+    nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    a {
+      color: var(--accent);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    nav a, .links a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    main { padding: 16px; }
+    .panel {
+      margin: 0 0 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+    .bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    h2 { margin: 0; font-size: 15px; letter-spacing: 0; }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; }
+    .scroll {
+      overflow: auto;
+      background: #fff;
+      padding: 12px;
+    }
+    .scroll img {
+      display: block;
+      max-width: none;
+      height: auto;
+    }
+    .section-img {
+      width: auto;
+    }
+    .full-svg {
+      width: 29391px;
+    }
+    .note {
+      margin: 0;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfd;
+    }
+    @media (max-width: 760px) {
+      header { position: static; align-items: flex-start; flex-direction: column; }
+      nav { justify-content: flex-start; }
+      main { padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Conway Wiring Diagram</h1>
+    <nav>
+      <a href="#sections">Sections</a>
+      <a href="#full">Full SVG</a>
+      <a href="out/conway-garden-control-box.html">WireViz HTML</a>
+      <a href="out/conway-garden-control-box.bom.tsv">BOM</a>
+    </nav>
+  </header>
+  <main>
+    <section class="panel" id="sections">
+      <div class="bar">
+        <h2>Readable Sections</h2>
+        <div class="links">
+          <a href="out/conway-garden-control-box.svg">SVG</a>
+          <a href="out/conway-garden-control-box.png">Full PNG</a>
+        </div>
+      </div>
+      <p class="note">Each plate is full-resolution and horizontally scrollable. Open an image directly to zoom further.</p>
+    </section>
+
+    <section class="panel" id="ac">
+      <div class="bar">
+        <h2>1. AC Input And Protection</h2>
+        <div class="links"><a href="out/sections/01-ac-input-and-protection.png">Open PNG</a></div>
+      </div>
+      <div class="scroll"><img class="section-img" src="out/sections/01-ac-input-and-protection.png" alt="AC input and protection wiring section"></div>
+    </section>
+
+    <section class="panel">
+      <div class="bar">
+        <h2>2. AC Distribution And Supplies</h2>
+        <div class="links"><a href="out/sections/02-ac-distribution-and-supplies.png">Open PNG</a></div>
+      </div>
+      <div class="scroll"><img class="section-img" src="out/sections/02-ac-distribution-and-supplies.png" alt="AC distribution and power supplies wiring section"></div>
+    </section>
+
+    <section class="panel">
+      <div class="bar">
+        <h2>3. UPS, Batteries, GPIO, Buttons</h2>
+        <div class="links"><a href="out/sections/03-ups-batteries-gpio-buttons.png">Open PNG</a></div>
+      </div>
+      <div class="scroll"><img class="section-img" src="out/sections/03-ups-batteries-gpio-buttons.png" alt="UPS, batteries, GPIO, and buttons wiring section"></div>
+    </section>
+
+    <section class="panel">
+      <div class="bar">
+        <h2>4. SSR, Display PSU, Fuse Block</h2>
+        <div class="links"><a href="out/sections/04-ssr-display-psu-fuse-block.png">Open PNG</a></div>
+      </div>
+      <div class="scroll"><img class="section-img" src="out/sections/04-ssr-display-psu-fuse-block.png" alt="SSR display power supply and fuse block wiring section"></div>
+    </section>
+
+    <section class="panel">
+      <div class="bar">
+        <h2>5. NovaStar And Display Data</h2>
+        <div class="links"><a href="out/sections/05-novastar-display-data.png">Open PNG</a></div>
+      </div>
+      <div class="scroll"><img class="section-img" src="out/sections/05-novastar-display-data.png" alt="NovaStar display data wiring section"></div>
+    </section>
+
+    <section class="panel">
+      <div class="bar">
+        <h2>6. Service Ethernet And Storage</h2>
+        <div class="links"><a href="out/sections/06-service-ethernet-and-storage.png">Open PNG</a></div>
+      </div>
+      <div class="scroll"><img class="section-img" src="out/sections/06-service-ethernet-and-storage.png" alt="Service Ethernet and storage wiring section"></div>
+    </section>
+
+    <section class="panel" id="full">
+      <div class="bar">
+        <h2>Full Vector Diagram</h2>
+        <div class="links"><a href="out/conway-garden-control-box.svg">Open SVG</a></div>
+      </div>
+      <p class="note">This is the same full diagram at natural size. Scroll horizontally.</p>
+      <div class="scroll"><img class="full-svg" src="out/conway-garden-control-box.svg" alt="Full Conway wiring diagram"></div>
+    </section>
+  </main>
+</body>
+</html>
