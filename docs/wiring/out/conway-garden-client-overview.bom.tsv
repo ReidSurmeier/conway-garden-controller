@@ -1,42 +1,83 @@
 Id	Description	Qty	Unit	Designators
-1	Blue Sea Systems 5025 fuse box	1		FUSE_BOX
-2	Cable, 120 V AC input, 2 wires	0	m	AC_CABLE
-3	Cable, 5 V controller feed into fuse box, 2 wires	0	m	PI_SUPPLY_TO_FUSE_BOX
-4	Cable, 5 V display-electronics feed into fuse box, 2 wires	0	m	DISPLAY_SUPPLY_TO_FUSE_BOX
-5	Cable, Ethernet cable, 1 wires	0	m	MSD300_TO_NV3210
-6	Cable, LED panel ribbon cables, 2 wires	0	m	RIBBON_TO_PANELS
-7	Cable, Pi relay-control signal, 1 wires	0	m	RELAY_CONTROL
-8	Cable, X1201 battery connection, 1 wires	0	m	BATTERY_LINK
-9	Cable, always-on AC feed, 2 wires	0	m	AC_TO_PI_SUPPLY
-10	Cable, battery-backed Pi power and power-loss signal, 3 wires	0	m	X1201_TO_PI
-11	Cable, micro HDMI to DVI cable / adapter, 1 wires shielded	0	m	HDMI_TO_DVI
-12	Cable, protected 5 V fan feed, 2 wires	0	m	FUSE_BOX_TO_FAN
-13	Cable, protected 5 V feed to MSD300-1, 2 wires	0	m	FUSE_BOX_TO_MSD300
-14	Cable, protected 5 V feed to NV3210, 2 wires	0	m	FUSE_BOX_TO_NV3210
-15	Cable, protected 5 V feed to UPS board, 2 wires	0	m	FUSE_BOX_TO_X1201
-16	Cable, relay-switched AC output, 2 wires	0	m	AC_RELAY_TO_DISPLAY_SUPPLY
-17	Cable, start / stop button harness, 1 wires	0	m	BUTTON_HARNESS
-18	Cable, switched display AC feed, 2 wires	0	m	AC_TO_RELAY
-19	Connector, 120 V AC power input, 3-prong cable into the enclosure, 2 pins	1		AC_IN
-20	Connector, APIELE push buttons, start and stop controls, 1 pins	1		BUTTONS
-21	Connector, Blue Sea Systems 5025 fuse box, protected 5 V electronics branches, 12 pins	1		FUSE_BOX
-22	Connector, Easycargo 30 mm fan, enclosure cooling, 2 pins	1		FAN
-23	Connector, Geekworm X1201, battery backup for Raspberry Pi, 6 pins	1		X1201
-24	Connector, LCLCTC DIN rail solid-state relay, Pi-controlled display-power switch, 4 pins	1		RELAY
-25	Connector, LED panels, panel stack / display face, 2 pins	1		PANELS
-26	Connector, MEAN WELL LRS-150F-5, larger 5 V supply for display electronics, 4 pins	1		PSU_DISPLAY
-27	Connector, MEAN WELL LRS-50-5, small 5 V supply for the controller side, 4 pins	1		PSU_PI
-28	Connector, NovaStar MSD300-1, DVI sender, 4 pins	1		MSD300
-29	Connector, NovaStar NV3210, receiver card, 5 pins	1		NV3210
-30	Connector, Power inlet and breaker, fused shutoff for the control box, 4 pins	1		AC_PROTECT
-31	Connector, Raspberry Pi 5, garden controller, 6 pins	1		RPI
-32	Connector, Samsung 30Q cells, two 18650 backup batteries, 1 pins	1		BATTERIES
-33	Ethernet cable from MSD300-1 to NV3210	1		MSD300_TO_NV3210
-34	Geekworm X1201 UPS HAT	1		X1201
-35	LED panel ribbon cables	2		RIBBON_TO_PANELS
-36	MEAN WELL LRS-150F-5 5 V power supply	1		PSU_DISPLAY
-37	MEAN WELL LRS-50-5 5 V power supply	1		PSU_PI
-38	Micro HDMI to DVI adapter cable	1		HDMI_TO_DVI
-39	NovaStar MSD300-1 sender	1		MSD300
-40	NovaStar NV3210 receiver	1		NV3210
-41	Samsung 30Q 18650 flat-top cell	2		BATTERIES
+1	120 V AC three-prong cable	1		AC_IN
+2	Adafruit AHT20 temperature/humidity sensor	1		AHT20_SENSOR
+3	Blue Sea Systems 5025 fuse box	1		FUSE_BOX
+4	Cable, AC L/N, 2 wires	0	m	
+5	Cable, AC to Pi PSU, 2 wires	0	m	
+6	Cable, AC to relay, 1 wires	0	m	
+7	Cable, AHT20 I2C, 4 wires	0	m	
+8	Cable, Ethernet cable, 1 wires	0	m	MSD300_TO_NV3210
+9	Cable, HDMI to DVI, 1 wires shielded	0	m	HDMI_TO_DVI
+10	Cable, LED PSU neutral, 1 wires	0	m	
+11	Cable, PE ground, 1 wires	0	m	
+12	Cable, PE to LED PSU, 1 wires	0	m	
+13	Cable, PE to Pi PSU, 1 wires	0	m	
+14	Cable, Pi power + PLD, 3 wires	0	m	
+15	Cable, START harness, 2 wires	0	m	
+16	Cable, STOP harness, 2 wires	0	m	
+17	Cable, battery link, 1 wires	0	m	
+18	Cable, controller 5 V feed, 2 wires	0	m	
+19	Cable, fan 1 5 V, 2 wires	0	m	
+20	Cable, fan 2 5 V, 2 wires	0	m	
+21	Cable, fan 3 5 V, 2 wires	0	m	
+22	Cable, fan GPIO control, 2 wires	0	m	
+23	Cable, fused MSD300 5 V, 2 wires	0	m	
+24	Cable, fused NV3210 5 V, 2 wires	0	m	
+25	Cable, fused Pi 5 V, 2 wires	0	m	
+26	Cable, panel 1 5 V, 2 wires	0	m	
+27	Cable, panel 2 5 V, 2 wires	0	m	
+28	Cable, panel 3 5 V, 2 wires	0	m	
+29	Cable, panel 4 5 V, 2 wires	0	m	
+30	Cable, panel 5 5 V, 2 wires	0	m	
+31	Cable, panel 6 5 V, 2 wires	0	m	
+32	Cable, relay control, 2 wires	0	m	
+33	Cable, ribbon 1, 1 wires	0	m	
+34	Cable, ribbon 2, 1 wires	0	m	
+35	Cable, ribbon 3, 1 wires	0	m	
+36	Cable, ribbon 4, 1 wires	0	m	
+37	Cable, ribbon 5, 1 wires	0	m	
+38	Cable, ribbon 6, 1 wires	0	m	
+39	Cable, switched line, 1 wires	0	m	
+40	Connector, 120 V AC in, 3-prong cable, 3 pins	1		AC_IN
+41	Connector, 30 mm fan, 1 of 3, 3 pins	1		FAN_1
+42	Connector, 30 mm fan, 2 of 3, 3 pins	1		FAN_2
+43	Connector, 30 mm fan, 3 of 3, 3 pins	1		FAN_3
+44	Connector, APIELE push button, START, 2 pins	1		START_BTN
+45	Connector, APIELE push button, STOP, 2 pins	1		STOP_BTN
+46	Connector, Adafruit AHT20, I2C enclosure sensor, 4 pins	1		AHT20_SENSOR
+47	Connector, Blue Sea 5025, fused 5 V branches, 14 pins	1		FUSE_BOX
+48	Connector, Fuse inlet, breaker, 6 pins	1		POWER_INLET
+49	Connector, Geekworm X1201, UPS HAT, 6 pins	1		X1201
+50	Connector, Ground block, case bonded, 3 pins	1		GROUND_TERMINAL
+51	Connector, LCLCTC SSR, LED PSU line switch, 4 pins	1		RELAY
+52	Connector, LED panel, 1 of 6, 3 pins	1		PANEL_1
+53	Connector, LED panel, 2 of 6, 3 pins	1		PANEL_2
+54	Connector, LED panel, 3 of 6, 3 pins	1		PANEL_3
+55	Connector, LED panel, 4 of 6, 3 pins	1		PANEL_4
+56	Connector, LED panel, 5 of 6, 3 pins	1		PANEL_5
+57	Connector, LED panel, 6 of 6, 3 pins	1		PANEL_6
+58	Connector, MEAN WELL LRS-150F-5, switched LED 5 V, 15 pins	1		PSU_LED
+59	Connector, MEAN WELL LRS-50-5, always-on 5 V, 5 pins	1		PSU_PI
+60	Connector, NovaStar MSD300-1, sender, 4 pins	1		MSD300
+61	Connector, NovaStar NV3210, receiver, 9 pins	1		NV3210
+62	Connector, Raspberry Pi 5, controller, 16 pins	1		RPI
+63	Connector, Samsung 30Q cells, 2x 18650, 1 pins	1		BATTERIES
+64	Easycargo 30 mm fan	3		FAN_1, FAN_2, FAN_3
+65	Ethernet cable from MSD300-1 to NV3210	1		MSD300_TO_NV3210
+66	Fuse inlet and breaker	1		POWER_INLET
+67	Geekworm X1201 UPS HAT	1		X1201
+68	Ground terminal block	1		GROUND_TERMINAL
+69	LCLCTC DIN rail solid-state relay	1		RELAY
+70	LED matrix panels	6		PANEL_1, PANEL_2, PANEL_3, PANEL_4, PANEL_5, PANEL_6
+71	LED panel 5 V power leads	6		LED_PSU_TO_PANEL_1, LED_PSU_TO_PANEL_2, LED_PSU_TO_PANEL_3, LED_PSU_TO_PANEL_4, LED_PSU_TO_PANEL_5, LED_PSU_TO_PANEL_6
+72	LED panel ribbon cables	6		RIBBON_TO_PANEL_1, RIBBON_TO_PANEL_2, RIBBON_TO_PANEL_3, RIBBON_TO_PANEL_4, RIBBON_TO_PANEL_5, RIBBON_TO_PANEL_6
+73	MEAN WELL LRS-150F-5 5 V LED-panel power supply	1		PSU_LED
+74	MEAN WELL LRS-50-5 5 V controller power supply	1		PSU_PI
+75	Micro HDMI to DVI adapter cable	1		HDMI_TO_DVI
+76	NovaStar MSD300-1 sender	1		MSD300
+77	NovaStar NV3210 receiver	1		NV3210
+78	Pi GPIO fan-control harness	1		FAN_CONTROL_HARNESS
+79	Protected 5 V fan power leads	3		FUSE_BOX_TO_FAN_1, FUSE_BOX_TO_FAN_2, FUSE_BOX_TO_FAN_3
+80	START button	1		START_BTN
+81	STOP button	1		STOP_BTN
+82	Samsung 30Q 18650 flat-top cell	2		BATTERIES

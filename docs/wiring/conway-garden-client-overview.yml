@@ -1,18 +1,20 @@
 metadata:
-  title: Conway Garden Control Box - Simplified Client Overview
-  revision: 0.2
-  date: 2026-07-07
+  title: Conway Garden Control Box - Client WireViz Source
+  revision: 0.4
+  date: 2026-07-08
   authors:
     Created:
       name: Codex
-      date: 2026-07-07
+      date: 2026-07-08
   notes: >
-    Simplified WireViz diagram for client review. This intentionally omits
-    internal split points, spare parts, tools, wire stock, mounting hardware,
-    and pin-level Ethernet detail. The fuse box is shown protecting the Pi /
-    X1201 feed, the NovaStar MSD300-1 sender, the NV3210 receiver, and the
-    cooling fan. LED panels are shown as ribbon-cable outputs from the
-    NV3210, not as fuse-box outputs.
+    Simplified WireViz source for the printable client wiring package. The
+    rendered WireViz HTML, SVG, PNG, PDF, and BOM are the client-facing wiring
+    artifacts. This source shows the current hardware contract: 120 V AC
+    three-prong input, a single ground terminal block, two separate 5 V power
+    supplies, a relay that switches only the LED-panel supply, separate START
+    and STOP buttons, MSD300-1 to NV3210 video/data flow, six LED matrix
+    panels, an Adafruit AHT20 enclosure sensor, and three
+    temperature-controlled enclosure fans.
 
 options:
   bgcolor: WH
@@ -23,225 +25,549 @@ options:
   fontname: DejaVu Sans
   mini_bom_mode: false
 
+tweak:
+  override:
+    graph:
+      ranksep: "0.85"
+      nodesep: "0.18"
+
 connectors:
   AC_IN:
-    type: 120 V AC power input
-    subtype: 3-prong cable into the enclosure
-    pinlabels: [POWER_IN, GROUND_BOND]
-    notes: Wall power enters the box through the fused inlet / breaker assembly.
+    type: 120 V AC in
+    subtype: 3-prong cable
+    pinlabels: [LINE, NEUTRAL, GROUND]
+    image:
+      src: assets/wireviz-images/fuse_inlet.png
+      height: 30
 
-  AC_PROTECT:
-    type: Power inlet and breaker
-    subtype: fused shutoff for the control box
-    pinlabels: [POWER_IN, GROUND_BOND, ALWAYS_ON_AC, SWITCHED_AC_FEED]
-    notes: Simplified as one client-facing protection block.
-
-  PSU_PI:
-    type: MEAN WELL LRS-50-5
-    subtype: small 5 V supply for the controller side
-    pinlabels: [AC_IN, GROUND, 5V_OUT, GND_OUT]
-
-  RELAY:
-    type: LCLCTC DIN rail solid-state relay
-    subtype: Pi-controlled display-power switch
-    pinlabels: [AC_IN, AC_OUT, GROUND_PASS, CTRL_IN]
-
-  PSU_DISPLAY:
-    type: MEAN WELL LRS-150F-5
-    subtype: larger 5 V supply for display electronics
-    pinlabels: [AC_IN, GROUND, 5V_OUT, GND_OUT]
-
-  FUSE_BOX:
-    type: Blue Sea Systems 5025 fuse box
-    subtype: protected 5 V electronics branches
-    pinlabels:
-      - PI_5V_IN
-      - PI_GND_IN
-      - PI_FUSED_5V
-      - PI_GND
-      - DISPLAY_5V_IN
-      - DISPLAY_GND_IN
-      - MSD300_FUSED_5V
-      - MSD300_GND
-      - NV3210_FUSED_5V
-      - NV3210_GND
-      - FAN_FUSED_5V
-      - FAN_GND
+  POWER_INLET:
+    type: Fuse inlet
+    subtype: breaker
+    pinlabels: [L_IN, N_IN, L_PI, N_PI, L_RELAY, N_LED]
+    image:
+      src: assets/wireviz-images/fuse_inlet.png
+      height: 30
     loops:
       - [1, 3]
       - [2, 4]
-      - [5, 7]
-      - [6, 8]
-      - [5, 9]
-      - [6, 10]
-      - [5, 11]
-      - [6, 12]
-    notes: Protects the Pi/X1201, MSD300-1, NV3210, and fan branches. It does not feed the LED panels.
+      - [1, 5]
+      - [2, 6]
+
+  GROUND_TERMINAL:
+    type: Ground block
+    subtype: case bonded
+    pinlabels: [G_IN, G_PI, G_LED]
+    loops:
+      - [1, 2]
+      - [1, 3]
+    image:
+      src: assets/wireviz-images/ground_terminal.png
+      height: 30
+
+  PSU_PI:
+    type: MEAN WELL LRS-50-5
+    subtype: always-on 5 V
+    pinlabels: [L, N, PE, +5V, GND]
+    image:
+      src: assets/wireviz-images/lrs50.png
+      height: 30
+
+  RELAY:
+    type: LCLCTC SSR
+    subtype: LED PSU line switch
+    pinlabels: [L_IN, L_OUT, CTRL, GND]
+    image:
+      src: assets/wireviz-images/relay.png
+      height: 30
+
+  PSU_LED:
+    type: MEAN WELL LRS-150F-5
+    subtype: switched LED 5 V
+    pinlabels:
+      - L
+      - N
+      - PE
+      - P1_5V
+      - P1_GND
+      - P2_5V
+      - P2_GND
+      - P3_5V
+      - P3_GND
+      - P4_5V
+      - P4_GND
+      - P5_5V
+      - P5_GND
+      - P6_5V
+      - P6_GND
+    image:
+      src: assets/wireviz-images/lrs150.png
+      height: 30
+
+  FUSE_BOX:
+    type: Blue Sea 5025
+    subtype: fused 5 V branches
+    pinlabels:
+      - 5V_IN
+      - GND
+      - X1201_5V
+      - X1201_G
+      - MSD_5V
+      - MSD_G
+      - NV_5V
+      - NV_G
+      - F1_5V
+      - F1_G
+      - F2_5V
+      - F2_G
+      - F3_5V
+      - F3_G
+    loops:
+      - [1, 3]
+      - [2, 4]
+      - [1, 5]
+      - [2, 6]
+      - [1, 7]
+      - [2, 8]
+      - [1, 9]
+      - [2, 10]
+      - [1, 11]
+      - [2, 12]
+      - [1, 13]
+      - [2, 14]
+    image:
+      src: assets/wireviz-images/blue_sea.png
+      height: 30
 
   X1201:
     type: Geekworm X1201
-    subtype: battery backup for Raspberry Pi
-    pinlabels: [5V_IN, GND_IN, UPS_5V_OUT, UPS_GND_OUT, POWER_LOSS_SIGNAL, BATTERIES]
+    subtype: UPS HAT
+    pinlabels: [5V, GND, PI_5V, PI_GND, PLD, BATT]
+    image:
+      src: assets/wireviz-images/x1201.png
+      height: 30
 
   BATTERIES:
     type: Samsung 30Q cells
-    subtype: two 18650 backup batteries
-    pinlabels: [BATTERY_PAIR]
+    subtype: 2x 18650
+    pinlabels: [PAIR]
+    image:
+      src: assets/wireviz-images/battery.png
+      height: 30
 
   RPI:
     type: Raspberry Pi 5
-    subtype: garden controller
-    pinlabels: [5V_IN, GND_IN, POWER_LOSS_SIGNAL, GPIO_BUTTONS, GPIO_RELAY, MICRO_HDMI]
+    subtype: controller
+    pinlabels: [5V, GND, PLD, START, START_GND, STOP, STOP_GND, RELAY, CTRL_GND, HDMI, AHT_3V3, AHT_GND, SDA, SCL, FAN_EN, FAN_GND]
+    image:
+      src: assets/wireviz-images/pi5.png
+      height: 30
 
-  BUTTONS:
-    type: APIELE push buttons
-    subtype: start and stop controls
-    pinlabels: [START_STOP]
+  START_BTN:
+    type: APIELE push button
+    subtype: START
+    pinlabels: [SIGNAL, GND]
+    image:
+      src: assets/wireviz-images/push_buttons.png
+      height: 30
+
+  STOP_BTN:
+    type: APIELE push button
+    subtype: STOP
+    pinlabels: [SIGNAL, GND]
+    image:
+      src: assets/wireviz-images/push_buttons.png
+      height: 30
+
+  AHT20_SENSOR:
+    type: Adafruit AHT20
+    subtype: I2C enclosure sensor
+    pinlabels: [VIN, GND, SDA, SCL]
+    image:
+      src: assets/wireviz-images/aht20.png
+      height: 30
 
   MSD300:
     type: NovaStar MSD300-1
-    subtype: DVI sender
-    pinlabels: [DVI_IN, 5V_IN, GND_IN, ETHERNET_OUT]
+    subtype: sender
+    pinlabels: [DVI, 5V, GND, ETH]
+    image:
+      src: assets/wireviz-images/msd300.png
+      height: 30
 
   NV3210:
     type: NovaStar NV3210
-    subtype: receiver card
-    pinlabels: [ETHERNET_IN, 5V_IN, GND_IN, RIBBON_OUT_A, RIBBON_OUT_B]
+    subtype: receiver
+    pinlabels: [ETH, 5V, GND, R1, R2, R3, R4, R5, R6]
+    image:
+      src: assets/wireviz-images/nv3210.png
+      height: 30
 
-  PANELS:
-    type: LED panels
-    subtype: panel stack / display face
-    pinlabels: [RIBBON_IN_A, RIBBON_IN_B]
+  PANEL_1:
+    type: LED panel
+    subtype: 1 of 6
+    pinlabels: [5V, GND, RIBBON]
+    image:
+      src: assets/wireviz-images/led_matrix_panel.png
+      height: 30
 
-  FAN:
-    type: Easycargo 30 mm fan
-    subtype: enclosure cooling
-    pinlabels: [5V_IN, GND_IN]
+  PANEL_2:
+    type: LED panel
+    subtype: 2 of 6
+    pinlabels: [5V, GND, RIBBON]
+    image:
+      src: assets/wireviz-images/led_matrix_panel.png
+      height: 30
+
+  PANEL_3:
+    type: LED panel
+    subtype: 3 of 6
+    pinlabels: [5V, GND, RIBBON]
+    image:
+      src: assets/wireviz-images/led_matrix_panel.png
+      height: 30
+
+  PANEL_4:
+    type: LED panel
+    subtype: 4 of 6
+    pinlabels: [5V, GND, RIBBON]
+    image:
+      src: assets/wireviz-images/led_matrix_panel.png
+      height: 30
+
+  PANEL_5:
+    type: LED panel
+    subtype: 5 of 6
+    pinlabels: [5V, GND, RIBBON]
+    image:
+      src: assets/wireviz-images/led_matrix_panel.png
+      height: 30
+
+  PANEL_6:
+    type: LED panel
+    subtype: 6 of 6
+    pinlabels: [5V, GND, RIBBON]
+    image:
+      src: assets/wireviz-images/led_matrix_panel.png
+      height: 30
+
+  FAN_1:
+    type: 30 mm fan
+    subtype: 1 of 3
+    pinlabels: [5V, GND, CTRL]
+    image:
+      src: assets/wireviz-images/fan.png
+      height: 30
+
+  FAN_2:
+    type: 30 mm fan
+    subtype: 2 of 3
+    pinlabels: [5V, GND, CTRL]
+    image:
+      src: assets/wireviz-images/fan.png
+      height: 30
+
+  FAN_3:
+    type: 30 mm fan
+    subtype: 3 of 3
+    pinlabels: [5V, GND, CTRL]
+    image:
+      src: assets/wireviz-images/fan.png
+      height: 30
 
 cables:
-  AC_CABLE:
-    type: 120 V AC input
+  AC_LINE_NEUTRAL:
+    type: AC L/N
+    show_name: false
     wirecount: 2
-    colors: [BN, GNYE]
-    wirelabels: [wall_power, safety_ground]
+    colors: [BN, BU]
+    wirelabels: [L, N]
 
-  AC_TO_PI_SUPPLY:
-    type: always-on AC feed
+  AC_GROUND:
+    type: PE ground
+    show_name: false
+    wirecount: 1
+    colors: [GNYE]
+    wirelabels: [PE]
+
+  AC_TO_PI_PSU:
+    type: AC to Pi PSU
+    show_name: false
     wirecount: 2
-    colors: [BN, GNYE]
-    wirelabels: [always_on_power, safety_ground]
+    colors: [BN, BU]
+    wirelabels: [L, N]
+
+  GROUND_TO_PI_PSU:
+    type: PE to Pi PSU
+    show_name: false
+    wirecount: 1
+    colors: [GNYE]
+    wirelabels: [PE]
 
   AC_TO_RELAY:
-    type: switched display AC feed
-    wirecount: 2
-    colors: [BN, GNYE]
-    wirelabels: [display_power_feed, safety_ground]
+    type: AC to relay
+    show_name: false
+    wirecount: 1
+    colors: [BN]
+    wirelabels: [L]
 
-  AC_RELAY_TO_DISPLAY_SUPPLY:
-    type: relay-switched AC output
-    wirecount: 2
-    colors: [BN, GNYE]
-    wirelabels: [switched_power, safety_ground]
+  RELAY_TO_LED_PSU:
+    type: switched line
+    show_name: false
+    wirecount: 1
+    colors: [BN]
+    wirelabels: [L_SW]
 
-  PI_SUPPLY_TO_FUSE_BOX:
-    type: 5 V controller feed into fuse box
+  NEUTRAL_TO_LED_PSU:
+    type: LED PSU neutral
+    show_name: false
+    wirecount: 1
+    colors: [BU]
+    wirelabels: [N]
+
+  GROUND_TO_LED_PSU:
+    type: PE to LED PSU
+    show_name: false
+    wirecount: 1
+    colors: [GNYE]
+    wirelabels: [PE]
+
+  PI_PSU_TO_FUSE_BOX:
+    type: controller 5 V feed
+    show_name: false
     wirecount: 2
     colors: [RD, BK]
-    wirelabels: [controller_5V, controller_ground]
-
-  DISPLAY_SUPPLY_TO_FUSE_BOX:
-    type: 5 V display-electronics feed into fuse box
-    wirecount: 2
-    colors: [RD, BK]
-    wirelabels: [display_electronics_5V, display_electronics_ground]
+    wirelabels: [+5V, GND]
 
   FUSE_BOX_TO_X1201:
-    type: protected 5 V feed to UPS board
+    type: fused Pi 5 V
+    show_name: false
     wirecount: 2
     colors: [RD, BK]
-    wirelabels: [protected_pi_5V, pi_ground]
+    wirelabels: [+5V, GND]
 
   X1201_TO_PI:
-    type: battery-backed Pi power and power-loss signal
+    type: Pi power + PLD
+    show_name: false
     wirecount: 3
     colors: [RD, BK, YE]
-    wirelabels: [backup_5V, ground, wall_power_status]
+    wirelabels: [+5V, GND, PLD]
 
   BATTERY_LINK:
-    type: X1201 battery connection
+    type: battery link
+    show_name: false
     wirecount: 1
     colors: [PK]
-    wirelabels: [battery_pair]
+    wirelabels: [BATT]
 
-  BUTTON_HARNESS:
-    type: start / stop button harness
-    wirecount: 1
-    colors: [GN]
-    wirelabels: [button_signals]
+  START_BUTTON_HARNESS:
+    type: START harness
+    show_name: false
+    wirecount: 2
+    colors: [GN, BK]
+    wirelabels: [SIG, GND]
+
+  STOP_BUTTON_HARNESS:
+    type: STOP harness
+    show_name: false
+    wirecount: 2
+    colors: [WH, BK]
+    wirelabels: [SIG, GND]
 
   RELAY_CONTROL:
-    type: Pi relay-control signal
-    wirecount: 1
-    colors: [YE]
-    wirelabels: [relay_on_off]
+    type: relay control
+    show_name: false
+    wirecount: 2
+    colors: [YE, BK]
+    wirelabels: [CTRL, GND]
+
+  AHT20_I2C:
+    type: AHT20 I2C
+    show_name: false
+    wirecount: 4
+    colors: [RD, BK, GN, YE]
+    wirelabels: [3V3, GND, SDA, SCL]
 
   FUSE_BOX_TO_MSD300:
-    type: protected 5 V feed to MSD300-1
+    type: fused MSD300 5 V
+    show_name: false
     wirecount: 2
     colors: [RD, BK]
-    wirelabels: [msd300_5V, msd300_ground]
+    wirelabels: [+5V, GND]
 
   FUSE_BOX_TO_NV3210:
-    type: protected 5 V feed to NV3210
+    type: fused NV3210 5 V
+    show_name: false
     wirecount: 2
     colors: [RD, BK]
-    wirelabels: [nv3210_5V, nv3210_ground]
+    wirelabels: [+5V, GND]
 
-  FUSE_BOX_TO_FAN:
-    type: protected 5 V fan feed
+  FUSE_BOX_TO_FAN_1:
+    type: fan 1 5 V
+    show_name: false
     wirecount: 2
     colors: [RD, BK]
-    wirelabels: [fan_5V, fan_ground]
+    wirelabels: [+5V, GND]
+
+  FUSE_BOX_TO_FAN_2:
+    type: fan 2 5 V
+    show_name: false
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [+5V, GND]
+
+  FUSE_BOX_TO_FAN_3:
+    type: fan 3 5 V
+    show_name: false
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [+5V, GND]
+
+  FAN_CONTROL_HARNESS:
+    type: fan GPIO control
+    show_name: false
+    wirecount: 2
+    colors: [YE, BK]
+    wirelabels: [EN, GND]
+
+  LED_PSU_TO_PANEL_1:
+    type: panel 1 5 V
+    show_name: false
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [+5V, GND]
+
+  LED_PSU_TO_PANEL_2:
+    type: panel 2 5 V
+    show_name: false
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [+5V, GND]
+
+  LED_PSU_TO_PANEL_3:
+    type: panel 3 5 V
+    show_name: false
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [+5V, GND]
+
+  LED_PSU_TO_PANEL_4:
+    type: panel 4 5 V
+    show_name: false
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [+5V, GND]
+
+  LED_PSU_TO_PANEL_5:
+    type: panel 5 5 V
+    show_name: false
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [+5V, GND]
+
+  LED_PSU_TO_PANEL_6:
+    type: panel 6 5 V
+    show_name: false
+    wirecount: 2
+    colors: [RD, BK]
+    wirelabels: [+5V, GND]
 
   HDMI_TO_DVI:
-    type: micro HDMI to DVI cable / adapter
+    type: HDMI to DVI
     wirecount: 1
     colors: [BK]
-    wirelabels: [video_to_msd300]
+    wirelabels: [video]
     shield: true
+    image:
+      src: assets/wireviz-images/video_adapter.png
+      height: 30
 
   MSD300_TO_NV3210:
     type: Ethernet cable
     wirecount: 1
     colors: [BU]
     wirelabels: [novastar_data]
-    notes: Shown as one complete Ethernet cable, not broken out into pairs.
+    notes: One complete cable; pairs not broken out.
+    image:
+      src: assets/wireviz-images/ethernet.png
+      height: 30
 
-  RIBBON_TO_PANELS:
-    type: LED panel ribbon cables
-    wirecount: 2
-    colors: [GY, GY]
-    wirelabels: [ribbon_a, ribbon_b]
+  RIBBON_TO_PANEL_1:
+    type: ribbon 1
+    show_name: false
+    wirecount: 1
+    colors: [GY]
+    wirelabels: [data]
+
+  RIBBON_TO_PANEL_2:
+    type: ribbon 2
+    show_name: false
+    wirecount: 1
+    colors: [GY]
+    wirelabels: [data]
+
+  RIBBON_TO_PANEL_3:
+    type: ribbon 3
+    show_name: false
+    wirecount: 1
+    colors: [GY]
+    wirelabels: [data]
+
+  RIBBON_TO_PANEL_4:
+    type: ribbon 4
+    show_name: false
+    wirecount: 1
+    colors: [GY]
+    wirelabels: [data]
+
+  RIBBON_TO_PANEL_5:
+    type: ribbon 5
+    show_name: false
+    wirecount: 1
+    colors: [GY]
+    wirelabels: [data]
+
+  RIBBON_TO_PANEL_6:
+    type: ribbon 6
+    show_name: false
+    wirecount: 1
+    colors: [GY]
+    wirelabels: [data]
 
 connections:
   - - AC_IN: [1, 2]
-    - AC_CABLE: [1, 2]
-    - AC_PROTECT: [1, 2]
+    - AC_LINE_NEUTRAL: [1, 2]
+    - POWER_INLET: [1, 2]
 
-  - - AC_PROTECT: [3, 2]
-    - AC_TO_PI_SUPPLY: [1, 2]
+  - - AC_IN: 3
+    - AC_GROUND: 1
+    - GROUND_TERMINAL: 1
+
+  - - POWER_INLET: [3, 4]
+    - AC_TO_PI_PSU: [1, 2]
     - PSU_PI: [1, 2]
 
-  - - AC_PROTECT: [4, 2]
-    - AC_TO_RELAY: [1, 2]
-    - RELAY: [1, 3]
+  - - GROUND_TERMINAL: 2
+    - GROUND_TO_PI_PSU: 1
+    - PSU_PI: 3
 
-  - - RELAY: [2, 3]
-    - AC_RELAY_TO_DISPLAY_SUPPLY: [1, 2]
-    - PSU_DISPLAY: [1, 2]
+  - - POWER_INLET: 5
+    - AC_TO_RELAY: 1
+    - RELAY: 1
 
-  - - PSU_PI: [3, 4]
-    - PI_SUPPLY_TO_FUSE_BOX: [1, 2]
+  - - RELAY: 2
+    - RELAY_TO_LED_PSU: 1
+    - PSU_LED: 1
+
+  - - POWER_INLET: 6
+    - NEUTRAL_TO_LED_PSU: 1
+    - PSU_LED: 2
+
+  - - GROUND_TERMINAL: 3
+    - GROUND_TO_LED_PSU: 1
+    - PSU_LED: 3
+
+  - - PSU_PI: [4, 5]
+    - PI_PSU_TO_FUSE_BOX: [1, 2]
     - FUSE_BOX: [1, 2]
 
   - - FUSE_BOX: [3, 4]
@@ -256,31 +582,79 @@ connections:
     - BATTERY_LINK: 1
     - X1201: 6
 
-  - - RPI: 4
-    - BUTTON_HARNESS: 1
-    - BUTTONS: 1
+  - - RPI: [4, 5]
+    - START_BUTTON_HARNESS: [1, 2]
+    - START_BTN: [1, 2]
 
-  - - RPI: 5
-    - RELAY_CONTROL: 1
-    - RELAY: 4
+  - - RPI: [6, 7]
+    - STOP_BUTTON_HARNESS: [1, 2]
+    - STOP_BTN: [1, 2]
 
-  - - PSU_DISPLAY: [3, 4]
-    - DISPLAY_SUPPLY_TO_FUSE_BOX: [1, 2]
-    - FUSE_BOX: [5, 6]
+  - - RPI: [8, 9]
+    - RELAY_CONTROL: [1, 2]
+    - RELAY: [3, 4]
 
-  - - FUSE_BOX: [7, 8]
+  - - RPI: [11, 12, 13, 14]
+    - AHT20_I2C: [1, 2, 3, 4]
+    - AHT20_SENSOR: [1, 2, 3, 4]
+
+  - - FUSE_BOX: [5, 6]
     - FUSE_BOX_TO_MSD300: [1, 2]
     - MSD300: [2, 3]
 
-  - - FUSE_BOX: [9, 10]
+  - - FUSE_BOX: [7, 8]
     - FUSE_BOX_TO_NV3210: [1, 2]
     - NV3210: [2, 3]
 
-  - - FUSE_BOX: [11, 12]
-    - FUSE_BOX_TO_FAN: [1, 2]
-    - FAN: [1, 2]
+  - - FUSE_BOX: [9, 10]
+    - FUSE_BOX_TO_FAN_1: [1, 2]
+    - FAN_1: [1, 2]
 
-  - - RPI: 6
+  - - FUSE_BOX: [11, 12]
+    - FUSE_BOX_TO_FAN_2: [1, 2]
+    - FAN_2: [1, 2]
+
+  - - FUSE_BOX: [13, 14]
+    - FUSE_BOX_TO_FAN_3: [1, 2]
+    - FAN_3: [1, 2]
+
+  - - RPI: [15, 16]
+    - FAN_CONTROL_HARNESS: [1, 2]
+    - FAN_1: [3, 2]
+
+  - - RPI: [15, 16]
+    - FAN_CONTROL_HARNESS: [1, 2]
+    - FAN_2: [3, 2]
+
+  - - RPI: [15, 16]
+    - FAN_CONTROL_HARNESS: [1, 2]
+    - FAN_3: [3, 2]
+
+  - - PSU_LED: [4, 5]
+    - LED_PSU_TO_PANEL_1: [1, 2]
+    - PANEL_1: [1, 2]
+
+  - - PSU_LED: [6, 7]
+    - LED_PSU_TO_PANEL_2: [1, 2]
+    - PANEL_2: [1, 2]
+
+  - - PSU_LED: [8, 9]
+    - LED_PSU_TO_PANEL_3: [1, 2]
+    - PANEL_3: [1, 2]
+
+  - - PSU_LED: [10, 11]
+    - LED_PSU_TO_PANEL_4: [1, 2]
+    - PANEL_4: [1, 2]
+
+  - - PSU_LED: [12, 13]
+    - LED_PSU_TO_PANEL_5: [1, 2]
+    - PANEL_5: [1, 2]
+
+  - - PSU_LED: [14, 15]
+    - LED_PSU_TO_PANEL_6: [1, 2]
+    - PANEL_6: [1, 2]
+
+  - - RPI: 10
     - HDMI_TO_DVI: 1
     - MSD300: 1
 
@@ -288,26 +662,67 @@ connections:
     - MSD300_TO_NV3210: 1
     - NV3210: 1
 
-  - - NV3210: [4, 5]
-    - RIBBON_TO_PANELS: [1, 2]
-    - PANELS: [1, 2]
+  - - NV3210: 4
+    - RIBBON_TO_PANEL_1: 1
+    - PANEL_1: 3
+
+  - - NV3210: 5
+    - RIBBON_TO_PANEL_2: 1
+    - PANEL_2: 3
+
+  - - NV3210: 6
+    - RIBBON_TO_PANEL_3: 1
+    - PANEL_3: 3
+
+  - - NV3210: 7
+    - RIBBON_TO_PANEL_4: 1
+    - PANEL_4: 3
+
+  - - NV3210: 8
+    - RIBBON_TO_PANEL_5: 1
+    - PANEL_5: 3
+
+  - - NV3210: 9
+    - RIBBON_TO_PANEL_6: 1
+    - PANEL_6: 3
 
 additional_bom_items:
+  - description: 120 V AC three-prong cable
+    qty: 1
+    designators: [AC_IN]
+  - description: Fuse inlet and breaker
+    qty: 1
+    designators: [POWER_INLET]
+  - description: Ground terminal block
+    qty: 1
+    designators: [GROUND_TERMINAL]
+  - description: MEAN WELL LRS-50-5 5 V controller power supply
+    qty: 1
+    designators: [PSU_PI]
+  - description: MEAN WELL LRS-150F-5 5 V LED-panel power supply
+    qty: 1
+    designators: [PSU_LED]
+  - description: LCLCTC DIN rail solid-state relay
+    qty: 1
+    designators: [RELAY]
+  - description: Blue Sea Systems 5025 fuse box
+    qty: 1
+    designators: [FUSE_BOX]
   - description: Geekworm X1201 UPS HAT
     qty: 1
     designators: [X1201]
   - description: Samsung 30Q 18650 flat-top cell
     qty: 2
     designators: [BATTERIES]
-  - description: MEAN WELL LRS-50-5 5 V power supply
+  - description: START button
     qty: 1
-    designators: [PSU_PI]
-  - description: MEAN WELL LRS-150F-5 5 V power supply
+    designators: [START_BTN]
+  - description: STOP button
     qty: 1
-    designators: [PSU_DISPLAY]
-  - description: Blue Sea Systems 5025 fuse box
+    designators: [STOP_BTN]
+  - description: Adafruit AHT20 temperature/humidity sensor
     qty: 1
-    designators: [FUSE_BOX]
+    designators: [AHT20_SENSOR]
   - description: NovaStar MSD300-1 sender
     qty: 1
     designators: [MSD300]
@@ -320,6 +735,21 @@ additional_bom_items:
   - description: Ethernet cable from MSD300-1 to NV3210
     qty: 1
     designators: [MSD300_TO_NV3210]
+  - description: LED matrix panels
+    qty: 6
+    designators: [PANEL_1, PANEL_2, PANEL_3, PANEL_4, PANEL_5, PANEL_6]
   - description: LED panel ribbon cables
-    qty: 2
-    designators: [RIBBON_TO_PANELS]
+    qty: 6
+    designators: [RIBBON_TO_PANEL_1, RIBBON_TO_PANEL_2, RIBBON_TO_PANEL_3, RIBBON_TO_PANEL_4, RIBBON_TO_PANEL_5, RIBBON_TO_PANEL_6]
+  - description: LED panel 5 V power leads
+    qty: 6
+    designators: [LED_PSU_TO_PANEL_1, LED_PSU_TO_PANEL_2, LED_PSU_TO_PANEL_3, LED_PSU_TO_PANEL_4, LED_PSU_TO_PANEL_5, LED_PSU_TO_PANEL_6]
+  - description: Easycargo 30 mm fan
+    qty: 3
+    designators: [FAN_1, FAN_2, FAN_3]
+  - description: Protected 5 V fan power leads
+    qty: 3
+    designators: [FUSE_BOX_TO_FAN_1, FUSE_BOX_TO_FAN_2, FUSE_BOX_TO_FAN_3]
+  - description: Pi GPIO fan-control harness
+    qty: 1
+    designators: [FAN_CONTROL_HARNESS]

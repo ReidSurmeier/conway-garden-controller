@@ -115,7 +115,7 @@
   },
   "_metadata": {
     "name": "Screen 001",
-    "description": "Conway Garden screen_001 deploy preset. Calibrated to 312x416 portrait, rotated 90deg, xOffset 416 (NovaStar MRV412 mapping). vermont_radial point cloud (18 radial chunks, dynamic loading, view cone 90deg = 5 chunks in memory). axonScaleFactor 20 (tighter framing for sparser cloud vs gradient default of 100). Conway effect cycles curated MNCA presets every 240s.",
+    "description": "Conway Garden screen_001 deploy preset. Calibrated to 312x416 portrait, rotated 90deg, xOffset 416 (NovaStar NV3210 mapping). vermont_radial point cloud (18 radial chunks, dynamic loading, view cone 90deg = 5 chunks in memory). axonScaleFactor 20 (tighter framing for sparser cloud vs gradient default of 100). Conway effect cycles curated MNCA presets every 240s.",
     "version": "1.1.0",
     "author": "Clement Valla",
     "created": "2026-05-15"

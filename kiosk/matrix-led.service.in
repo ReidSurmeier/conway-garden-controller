@@ -1,0 +1,29 @@
+[Unit]
+Description=Conway Point Cloud Garden LED Display
+After=graphical.target network.target
+Requires=graphical.target
+
+[Service]
+Type=simple
+User={{CONWAY_USER}}
+Group={{CONWAY_GROUP}}
+WorkingDirectory={{CONWAY_HOME}}/Desktop/conway.pointcloud.garden
+
+Environment=DISPLAY=:0
+Environment=XAUTHORITY={{CONWAY_HOME}}/.Xauthority
+Environment=HOME={{CONWAY_HOME}}
+
+ExecStart={{CONWAY_HOME}}/Desktop/matrix-led-start.sh
+
+# matrix-led-start.sh installs a TRAP that cleans up its own children via
+# pidfiles. KillMode=control-group ensures any stragglers also die.
+Restart=no
+KillMode=control-group
+KillSignal=SIGTERM
+# A normal STOP path terminates Chromium/http.server and the wrapper exits 143.
+SuccessExitStatus=143
+TimeoutStopSec=10
+SendSIGKILL=yes
+
+[Install]
+WantedBy=graphical.target

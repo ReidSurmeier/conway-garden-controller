@@ -93,6 +93,17 @@
       border-bottom: 1px solid var(--line);
       background: #fbfcfd;
     }
+    .warning {
+      margin: 0 0 16px;
+      padding: 12px 14px;
+      border: 1px solid #d49a47;
+      border-left-width: 4px;
+      border-radius: 8px;
+      background: #fff8ed;
+      color: #4a3115;
+      font-size: 14px;
+      line-height: 1.4;
+    }
     @media (max-width: 760px) {
       header { position: static; align-items: flex-start; flex-direction: column; }
       nav { justify-content: flex-start; }
@@ -104,6 +115,7 @@
   <header>
     <h1>Conway Wiring Diagram</h1>
     <nav>
+      <a href="client-print.html">Current Client Packet</a>
       <a href="#sections">Sections</a>
       <a href="#full">Full SVG</a>
       <a href="out/conway-garden-control-box.html">WireViz HTML</a>
@@ -111,6 +123,13 @@
     </nav>
   </header>
   <main>
+    <p class="warning">
+      Legacy detailed draft. The current client-facing wiring packet is
+      <a href="client-print.html">client-print.html</a> and uses the corrected
+      NovaStar NV3210 receiver, separate START/STOP buttons, two 5 V PSUs, and
+      six LED matrix panels.
+    </p>
+
     <section class="panel" id="sections">
       <div class="bar">
         <h2>Readable Sections</h2>

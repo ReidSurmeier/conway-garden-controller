@@ -1,7 +1,12 @@
 # Conway Pointcloud Garden (version 1)
 
-Artist: Clement Valla. Engineer: Reid Surmeier. Current verified state:
-2026-05-15. Host name: `conway-garden-1`.
+Artist: Clement Valla. Engineer: Reid Surmeier.
+
+The Original Installation (`conway-garden-1`) was audited on 2026-05-15.
+The Point2 Replacement Installation was last live-verified on 2026-07-21.
+Point2 is currently offline, so its present service, relay, framebuffer, and
+physical display state are not verified. See [PROJECT.md](PROJECT.md) for the
+resumable status, evidence boundary, blockers, and next action.
 
 This repository is the working Read Me for Conway Pointcloud Garden. It holds
 the software, media assets, hardware record, setup procedure, maintenance notes,
@@ -19,9 +24,16 @@ Reference: https://github.com/mccoyspace/Best-practices-for-conservation-of-medi
 
 ## Current State
 
-The live system was audited on 2026-05-15. START powers the display side and
-starts `matrix-led.service`. STOP turns the display side off and stops the
-kiosk service. STOP does not halt the Pi.
+The Original Installation established the intended operating contract. START
+powers the display side and starts `matrix-led.service`. STOP turns the display
+side off and stops the kiosk service. STOP does not halt the Pi.
+
+The Point2 Replacement Installation reproduced the Conway canvas, NovaStar
+mapping, framebuffer output, service identity, and GPIO-safe-idle behavior on
+2026-07-21. Those results are historical Live Installation Evidence, not a
+claim that the offline machine is working today. The preserved tests in
+`tests/test_point2_installation.py` only contact hardware when
+`CONWAY_RUN_LIVE_TESTS=1` is set explicitly.
 
 The Geekworm X1201 UPS is wired into the controller through its PLD signal on
 BCM GPIO 6. With wall power present, GPIO 6 is HIGH. When wall power is lost,
@@ -79,10 +91,12 @@ journalctl -u matrix-controller -n 100 --no-pager
 journalctl -u matrix-led -n 100 --no-pager
 ```
 
-## Installed Paths
+## Original Installation Paths
 
-The live Pi uses stable paths so the installation can be serviced without
-guessing where the active files are.
+The Original Installation uses stable paths so it can be serviced without
+guessing where the active files are. Point2 uses the `reid` account and adapted
+paths documented in `tests/test_point2_installation.py`; do not apply this
+`pi`-account table to Point2 unchanged.
 
 | Live path | Source in this repository |
 |---|---|
@@ -100,15 +114,20 @@ The BoM is not just a shopping list. It records the function of each part and
 whether a future replacement must be exact or only functionally equivalent.
 
 The core runtime hardware is a Raspberry Pi 5, Geekworm X1201 UPS HAT with
-Samsung 30Q cells, MEAN WELL LRS-150F display PSU, LCLCTC DIN rail solid state
-relay, APIELE momentary buttons, a GPIO terminal breakout, a Blue Sea fuse
-block, a NovaStar MSD300-1 sender, a NovaStar MRV412 receiver, and the LED
-panel chain.
+Samsung 30Q cells, an always-on MEAN WELL LRS-50-5 controller PSU, a
+relay-switched MEAN WELL LRS-150F-5 LED-panel PSU, LCLCTC DIN rail solid state
+relay, APIELE momentary START and STOP buttons, a GPIO terminal breakout, a
+Blue Sea fuse block, a NovaStar MSD300-1 sender, a NovaStar NV3210 receiver,
+an Adafruit AHT20 enclosure sensor, three Easycargo 30 mm enclosure fans, and
+six LED matrix panels.
 
 The Pi, fuse block, buttons, wiring hardware, and power supply can be replaced
 with equivalent parts if their electrical role is preserved. The NovaStar
 sender, receiver, and LED mapping are more sensitive. Replacing them requires
 exporting or rebuilding the mapping and then updating [DISPLAY_MAPPING.md](DISPLAY_MAPPING.md).
+
+The current client wiring packet and generated PDF are in
+[docs/wiring](docs/wiring/).
 
 See [HARDWARE_BOM.md](HARDWARE_BOM.md) for the full supply list and the
 superseded notes from the earlier spreadsheet.
@@ -162,10 +181,12 @@ enclosure_temp=20.9C, enclosure_humidity=45.2%RH
 ```
 
 The AHT20 should be treated as a software safety input, not the only safety
-device. A future automatic protection pass should warn at sustained enclosure
-temperatures around `40C`, stop the display side around `45C`, require cooldown
-below about `38C` before restart, and still use a physical thermal cutoff for
-true hardware safety.
+device. The wiring packet shows three enclosure fans powered from the protected
+5 V fuse-box branch and controlled from the Pi GPIO path using the AHT20
+enclosure reading. A future automatic protection pass should warn at sustained
+enclosure temperatures around `40C`, stop the display side around `45C`,
+require cooldown below about `38C` before restart, and still use a physical
+thermal cutoff for true hardware safety.
 
 Current UPS configuration:
 
@@ -206,6 +227,18 @@ git clone https://github.com/ReidSurmeier/conway-garden-controller.git
 cd conway-garden-controller
 sudo bash scripts/bootstrap.sh
 ```
+
+Those defaults restore the Original Installation. To render the known Point2
+account and hostname profile on a prepared replacement host, use:
+
+```bash
+sudo CONWAY_USER=reid CONWAY_HOSTNAME=point2 bash scripts/bootstrap.sh
+```
+
+The bootstrap derives the user's primary group and home directory unless
+`CONWAY_GROUP` or `CONWAY_HOME` is supplied explicitly. This command changes a
+real host; it is documentation, not evidence that the currently offline Point2
+machine has received this repository revision.
 
 After install:
 
@@ -285,13 +318,13 @@ If using the current service key from Reid's Mac:
 ssh -i ~/.ssh/linux_desktop pi@10.55.0.2
 ```
 
-To force password login only:
+If a password-login recovery path is explicitly authorized, request the
+current credential through the approved password manager. Do not record it in
+this repository. The connection form is:
 
 ```bash
 ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no pi@10.55.0.2
 ```
-
-(password for ssh is 123)
 
 ### Push An Update From The Mac
 
