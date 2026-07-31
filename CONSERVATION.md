@@ -55,6 +55,9 @@ Verified on 2026-05-15:
   profile.
 - Adafruit AHT20 enclosure temperature/humidity sensor was detected on I2C bus
   1 at address `0x38` and added to the health snapshot when present.
+- The current wiring packet includes three Easycargo 30 mm enclosure fans.
+  They are powered from protected 5 V fan branches and controlled from the Pi
+  GPIO fan-control path using the AHT20 enclosure reading.
 
 ## 3. Normal Operation
 
@@ -92,12 +95,15 @@ The full BoM is in `HARDWARE_BOM.md`. Core components:
 | MicroSD card | System disk | Replaceable from gold image |
 | Geekworm X1201 | UPS and power-loss signal | Replaceable only if new UPS exposes equivalent GPIO behavior |
 | Samsung 30Q cells | UPS batteries | Replaceable with compatible protected/approved cells per X1201 requirements |
-| MEAN WELL LRS-150F | Display PSU | Replaceable with equivalent 5 V supply with sufficient current and physical fit |
-| LCLCTC DIN rail SSR | Switches display PSU/load path | Replaceable with equivalent rated relay/SSR |
+| MEAN WELL LRS-50-5 | Controller PSU | Replaceable with equivalent always-on 5 V supply with sufficient current and physical fit |
+| MEAN WELL LRS-150F-5 | LED-panel PSU | Replaceable with equivalent 5 V supply with sufficient current and physical fit |
+| LCLCTC DIN rail SSR | Switches LED-panel PSU line input | Replaceable with equivalent rated relay/SSR |
 | APIELE push buttons | START/STOP inputs | Replaceable with normally-open momentary switches |
+| Adafruit AHT20 | Enclosure temperature/humidity sensor | Replaceable with compatible I2C enclosure sensor if software and wiring are updated |
+| Three Easycargo 30 mm fans | Enclosure cooling | Replace with equivalent 5 V fans after checking current draw, airflow, and control wiring |
 | NovaStar MSD300-1 | Sender card | Replaceable with compatible sender; requires remapping/reverification |
-| NovaStar MRV412 | Receiver card | Replaceable with compatible receiver; requires config backup/reload |
-| LED panels | Display surface | Replace modules/panels only after isolating cable/power/mapping faults |
+| NovaStar NV3210 | Receiver card | Replaceable with compatible receiver; requires config backup/reload |
+| Six LED matrix panels | Display surface | Replace modules/panels only after isolating cable/power/mapping faults |
 
 ## 6. Wiring
 
@@ -113,6 +119,7 @@ GPIO numbers are BCM numbers.
 | AHT20 GND | - | 6 | Ground |
 | AHT20 SDA | 2 | 3 | I2C data, address `0x38` |
 | AHT20 SCL | 3 | 5 | I2C clock |
+| Fan enable/control | See wiring packet | See wiring packet | Pi GPIO fan-control harness; fan motor power comes from fused 5 V |
 
 The controller config is `/etc/matrix-controller/controller.yaml`; the repo
 snapshot is `config/controller.yaml`.
@@ -120,7 +127,8 @@ snapshot is `config/controller.yaml`.
 ## 7. Enclosure Temperature Sensor
 
 An Adafruit AHT20 is wired to the Pi I2C bus and is used for enclosure
-temperature/humidity monitoring.
+temperature/humidity monitoring. The enclosure temperature reading is the
+software input for turning the three enclosure fans on and off.
 
 | Signal | Pi header pin | Notes |
 |---|---:|---|
@@ -137,6 +145,8 @@ Runtime requirements:
   `enclosure_humidity=<value>%RH` when the sensor is present.
 - The sensor is optional for boot: if it is unplugged, the health check should
   continue without failing the whole artwork.
+- The fan wiring remains protected 5 V for motor power; the Pi GPIO path is
+  only the control path.
 
 Short active-display test on 2026-05-15:
 
@@ -245,10 +255,12 @@ changing the web app.
 | Each install | Verify START and STOP buttons |
 | Each install | Verify `sudo pinctrl get 6` is HIGH on wall power |
 | Each install | Confirm the AHT20 health log includes enclosure temp/humidity |
+| Each install | Confirm all three enclosure fans turn on from the temperature-control path |
 | Each install | Unplug wall power once and confirm safe shutdown if commissioning |
 | Monthly | Inspect cables, ribbons, fuses, relay terminals, and panel seating |
 | Monthly | Read `journalctl -t conway-health --since "30 days ago"` |
 | Monthly | Review enclosure temperature trend from `conway-health` |
+| Monthly | Check that all three enclosure fans spin freely and are clear of dust |
 | Monthly | Confirm `systemctl --failed` returns zero units |
 | Monthly | Confirm `/etc/apt/apt.conf.d/20auto-upgrades` still disables apt periodic work |
 | On change | Commit code/config, update docs, and make a gold image |

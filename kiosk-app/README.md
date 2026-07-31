@@ -65,7 +65,7 @@ modification when the preset name changes — only the file under
 
 The display calibration is unchanged: 312x416 canvas, `xOffset=416`,
 `rotation=90`, `pointSize=1`. That mapping still matches the working
-NovaStar MRV412 receiver configuration recorded in
+NovaStar NV3210 receiver configuration recorded in
 `../DISPLAY_MAPPING.md`. Do not return to the older guessed
 `384x192` mapping unless the NovaStar mapping is intentionally
 rebuilt and tested.

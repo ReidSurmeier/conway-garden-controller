@@ -1,5 +1,5 @@
 #!/bin/bash
-# Matrix LED start script — runs as `pi` user via matrix-led.service.
+# Matrix LED start script — runs as the configured kiosk user via matrix-led.service.
 # Triggered when matrix-controller flips the relay ON.
 #
 # Conservation notes:
@@ -15,12 +15,21 @@ PROJECT_PATH="${PROJECT_PATH:-$HOME/Desktop/conway.pointcloud.garden}"
 LOG_FILE="${LOG_FILE:-$HOME/conway_startup.log}"
 HTTP_PORT="${HTTP_PORT:-8000}"
 PIDFILE_DIR="${PIDFILE_DIR:-$HOME/.local/run/conway}"
+CHROMIUM_BIN="${CHROMIUM_BIN:-}"
 mkdir -p "$PIDFILE_DIR"
 HTTP_PIDFILE="$PIDFILE_DIR/http.pid"
 CHROME_PIDFILE="$PIDFILE_DIR/chrome.pid"
 
 log() { printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" | tee -a "$LOG_FILE"; }
 err() { log "ERROR: $1"; }
+
+if [ -z "$CHROMIUM_BIN" ]; then
+    CHROMIUM_BIN="$(command -v chromium-browser || command -v chromium || true)"
+fi
+if [ -z "$CHROMIUM_BIN" ]; then
+    err "Chromium executable not found (tried chromium-browser and chromium)"
+    exit 1
+fi
 
 cleanup() {
     log "matrix-led-start: stopping (cleanup)"
@@ -114,7 +123,7 @@ rm -f "$CHROMIUM_PROFILE/SingletonLock" \
 KIOSK_URL="http://localhost:$HTTP_PORT/?v=$(date +%s)"
 log "Launching Chromium kiosk -> $KIOSK_URL"
 
-chromium-browser \
+"$CHROMIUM_BIN" \
     --kiosk \
     --start-fullscreen \
     --window-position=0,0 \
@@ -124,6 +133,7 @@ chromium-browser \
     --noerrdialogs \
     --no-first-run \
     --no-default-browser-check \
+    --password-store=basic \
     --disable-infobars \
     --disable-restore-session-state \
     --disable-session-crashed-bubble \

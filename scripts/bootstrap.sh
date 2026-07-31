@@ -5,12 +5,13 @@
 #
 # Pre-req:
 #   1. Pi 5 with fresh Raspberry Pi OS Bookworm 64-bit (Lite or Desktop).
-#   2. User `pi` exists, autologin enabled (Desktop edition default).
+#   2. The kiosk user exists and has graphical autologin enabled.
 #   3. This repo cloned somewhere accessible.
 #   4. This repo includes kiosk-app/ with the static web app.
 #
 # Run with:
 #   sudo bash scripts/bootstrap.sh
+#   sudo CONWAY_USER=reid CONWAY_HOSTNAME=point2 bash scripts/bootstrap.sh
 #
 set -e
 
@@ -20,7 +21,23 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONWAY_USER="${CONWAY_USER:-pi}"
+if ! id "$CONWAY_USER" >/dev/null 2>&1; then
+    echo "Error: kiosk user does not exist: $CONWAY_USER"
+    exit 1
+fi
+CONWAY_GROUP="${CONWAY_GROUP:-$(id -gn "$CONWAY_USER")}"
+CONWAY_HOME="${CONWAY_HOME:-$(getent passwd "$CONWAY_USER" | cut -d: -f6)}"
+CONWAY_HOSTNAME="${CONWAY_HOSTNAME:-conway-garden-1}"
+case "$CONWAY_HOME" in
+    /*) ;;
+    *)
+        echo "Error: kiosk home must be an absolute path: $CONWAY_HOME"
+        exit 1
+        ;;
+esac
 echo "Bootstrap from $REPO_ROOT"
+echo "Installation profile: user=$CONWAY_USER group=$CONWAY_GROUP home=$CONWAY_HOME hostname=$CONWAY_HOSTNAME"
 echo ""
 
 # 1. Install the controller (apt deps + Python package + systemd unit).
@@ -30,14 +47,21 @@ echo ""
 
 # 2. Install the kiosk start script + service + web app.
 echo "=== 2. Installing kiosk start script + web app ==="
-install -m 0755 -o pi -g pi "$REPO_ROOT/kiosk/matrix-led-start.sh" /home/pi/Desktop/matrix-led-start.sh
-install -m 0644 "$REPO_ROOT/kiosk/matrix-led.service" /etc/systemd/system/matrix-led.service
+install -d -m 0755 -o "$CONWAY_USER" -g "$CONWAY_GROUP" "$CONWAY_HOME/Desktop"
+install -m 0755 -o "$CONWAY_USER" -g "$CONWAY_GROUP" \
+    "$REPO_ROOT/kiosk/matrix-led-start.sh" "$CONWAY_HOME/Desktop/matrix-led-start.sh"
+python3 "$REPO_ROOT/scripts/render_kiosk_service.py" \
+    --user "$CONWAY_USER" \
+    --group "$CONWAY_GROUP" \
+    --home "$CONWAY_HOME" \
+    --output /etc/systemd/system/matrix-led.service
+chmod 0644 /etc/systemd/system/matrix-led.service
 if [ -d "$REPO_ROOT/kiosk-app" ]; then
-    KIOSK_DEST=/home/pi/Desktop/conway.pointcloud.garden
+    KIOSK_DEST="$CONWAY_HOME/Desktop/conway.pointcloud.garden"
     rm -rf "$KIOSK_DEST"
     cp -r "$REPO_ROOT/kiosk-app" "$KIOSK_DEST"
     rm -f "$KIOSK_DEST/README.md"   # repo doc, not part of the running app
-    chown -R pi:pi "$KIOSK_DEST"
+    chown -R "$CONWAY_USER:$CONWAY_GROUP" "$KIOSK_DEST"
     echo "  kiosk web app restored to $KIOSK_DEST"
 else
     echo "  WARNING: $REPO_ROOT/kiosk-app missing — the kiosk will load a blank page"
@@ -110,15 +134,16 @@ echo ""
 
 # 8. Set hostname.
 echo "=== 8. Setting hostname ==="
-if [ "$(hostnamectl --static)" != "conway-garden-1" ]; then
-    hostnamectl set-hostname conway-garden-1
-    sed -i "s/$(hostname)/conway-garden-1/g" /etc/hosts || true
+if [ "$(hostnamectl --static)" != "$CONWAY_HOSTNAME" ]; then
+    OLD_HOSTNAME="$(hostname)"
+    hostnamectl set-hostname "$CONWAY_HOSTNAME"
+    sed -i "s/$OLD_HOSTNAME/$CONWAY_HOSTNAME/g" /etc/hosts || true
 fi
 echo ""
 
 echo "============================================="
 echo "Bootstrap complete. Required next steps:"
-echo "  1. Add your SSH public key to /home/pi/.ssh/authorized_keys"
+echo "  1. Add your SSH public key to $CONWAY_HOME/.ssh/authorized_keys"
 echo "  2. Review /boot/firmware/config.txt against system/boot-firmware-config.txt"
 echo "  3. Reboot to engage the hardware watchdog."
 echo "  4. Verify: systemctl status matrix-controller && journalctl -t conway-health -n 5"

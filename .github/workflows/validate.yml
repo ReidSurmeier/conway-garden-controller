@@ -1,0 +1,42 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  local-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+
+      - name: Run repository contracts
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Run wiring contracts
+        run: python3 -m unittest discover -s docs/wiring -p 'test_*.py' -v
+
+      - name: Compile Python sources
+        run: python3 -m compileall -q src scripts tests docs/wiring
+
+      - name: Verify default service rendering
+        run: |
+          python3 scripts/render_kiosk_service.py > /tmp/matrix-led.service
+          cmp kiosk/matrix-led.service /tmp/matrix-led.service
+
+      - name: Check shell syntax
+        run: |
+          bash -n kiosk/matrix-led-start.sh
+          bash -n scripts/bootstrap.sh

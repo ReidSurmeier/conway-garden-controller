@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Conway Garden Control Box - Printable Wiring Packet</title>
+  <style>
+    @page {
+      size: Letter;
+      margin: 0.5in;
+    }
+
+    :root {
+      --paper: #ffffff;
+      --ink: #1b2328;
+      --muted: #5f6c72;
+      --rule: #cdd7dc;
+      --soft: #f3f6f4;
+      --ac: #8b4b22;
+      --dc: #bf2f38;
+      --control: #0f6d74;
+      --signal: #4f5f2f;
+      --ground: #477b3d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: #eef1ef;
+    }
+
+    body {
+      max-width: 8.5in;
+      margin: 0 auto;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.35;
+    }
+
+    a {
+      color: #185d78;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .page {
+      padding: 0.48in 0.52in;
+      min-height: 10.9in;
+      page-break-after: always;
+    }
+
+    .page:last-child {
+      page-break-after: auto;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.25in;
+      align-items: start;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 0.16in;
+      margin-bottom: 0.22in;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 0.08in;
+      font-size: 24pt;
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-bottom: 0.12in;
+      padding-bottom: 0.05in;
+      border-bottom: 1px solid var(--rule);
+      font-size: 16pt;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin-bottom: 0.04in;
+      font-size: 10.8pt;
+      letter-spacing: 0;
+    }
+
+    .dek {
+      max-width: 6.3in;
+      margin-bottom: 0;
+      color: #3d4a50;
+      font-size: 11.2pt;
+    }
+
+    .meta {
+      min-width: 1.3in;
+      text-align: right;
+      color: var(--muted);
+      font-size: 8.5pt;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.12in;
+      margin-bottom: 0.22in;
+    }
+
+    .summary-item {
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 0.1in;
+      background: var(--soft);
+    }
+
+    .summary-item strong {
+      display: block;
+      margin-bottom: 0.03in;
+      font-size: 9.2pt;
+    }
+
+    .diagram-wrap {
+      border: 1px solid var(--rule);
+      border-radius: 7px;
+      background: #fbfcfb;
+      padding: 0.12in;
+      margin-bottom: 0.18in;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .box {
+      fill: #ffffff;
+      stroke: #263239;
+      stroke-width: 1.25;
+    }
+
+    .soft-box {
+      fill: #f7faf8;
+      stroke: #b8c6cc;
+      stroke-width: 1.15;
+    }
+
+    .box-title {
+      fill: var(--ink);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .box-note {
+      fill: var(--muted);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .wire {
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 4.2;
+    }
+
+    .wire.ac {
+      stroke: var(--ac);
+    }
+
+    .wire.dc {
+      stroke: var(--dc);
+    }
+
+    .wire.control {
+      stroke: var(--control);
+    }
+
+    .wire.signal {
+      stroke: var(--signal);
+    }
+
+    .wire.ground {
+      stroke: var(--ground);
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(5, auto);
+      gap: 0.08in;
+      justify-content: start;
+      margin-top: 0.09in;
+      color: #3d4a50;
+      font-size: 8.7pt;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.05in;
+      white-space: nowrap;
+    }
+
+    .sample {
+      width: 0.35in;
+      height: 4px;
+      border-radius: 99px;
+      background: var(--rule);
+    }
+
+    .sample.ac {
+      background: var(--ac);
+    }
+
+    .sample.dc {
+      background: var(--dc);
+    }
+
+    .sample.control {
+      background: var(--control);
+    }
+
+    .sample.signal {
+      background: var(--signal);
+    }
+
+    .sample.ground {
+      background: var(--ground);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.18in;
+    }
+
+    .plain {
+      margin: 0;
+      padding-left: 0.17in;
+    }
+
+    .plain li {
+      margin-bottom: 0.04in;
+    }
+
+    .parts {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.12in;
+    }
+
+    .part {
+      min-height: 2.28in;
+      border: 1px solid var(--rule);
+      border-radius: 7px;
+      overflow: hidden;
+      background: #ffffff;
+      break-inside: avoid;
+    }
+
+    .photo {
+      display: grid;
+      place-items: center;
+      height: 1.2in;
+      padding: 0.06in;
+      background: #f9faf8;
+      border-bottom: 1px solid #e0e6e9;
+      overflow: hidden;
+    }
+
+    .photo img {
+      display: block;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .part-body {
+      position: relative;
+      z-index: 1;
+      padding: 0.08in;
+      background: #ffffff;
+    }
+
+    .part p {
+      margin-bottom: 0.04in;
+      color: #3d4a50;
+      font-size: 8.7pt;
+    }
+
+    .part a {
+      font-size: 7.8pt;
+      font-weight: 700;
+    }
+
+    .artifact-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.08in;
+      margin-top: 0.08in;
+    }
+
+    .artifact-list a {
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 0.08in;
+      background: var(--soft);
+      font-weight: 700;
+    }
+
+    .safety {
+      margin-top: 0.16in;
+      border-left: 4px solid var(--ac);
+      padding: 0.1in 0.12in;
+      background: #fbf7f2;
+      color: #3e3025;
+    }
+
+    .print-note {
+      margin-top: 0.08in;
+      color: var(--muted);
+      font-size: 8.3pt;
+    }
+
+    @media screen {
+      body {
+        box-shadow: 0 18px 60px rgba(26, 36, 42, 0.18);
+      }
+    }
+
+    @media print {
+      html,
+      body {
+        background: #ffffff;
+      }
+
+      body {
+        width: auto;
+        max-width: none;
+        box-shadow: none;
+      }
+
+      .page {
+        min-height: 0;
+        padding: 0;
+      }
+
+      a {
+        color: var(--ink);
+      }
+    }
+
+    @media (max-width: 760px) {
+      body {
+        max-width: none;
+      }
+
+      .page {
+        min-height: 0;
+        padding: 20px;
+      }
+
+      header,
+      .summary-grid,
+      .two-col,
+      .parts,
+      .artifact-list {
+        grid-template-columns: 1fr;
+      }
+
+      .meta {
+        text-align: left;
+      }
+
+      .legend {
+        grid-template-columns: repeat(2, auto);
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="page">
+    <header>
+      <div>
+        <h1>Conway Garden Control Box</h1>
+        <p class="dek">Printable wiring overview for client review. This keeps the diagram readable and uses WireViz as the source and BOM artifact instead of making the long WireViz render the main client view.</p>
+      </div>
+      <div class="meta">
+        Revision 0.3<br>
+        2026-07-08<br>
+        WireViz source backed
+      </div>
+    </header>
+
+    <div class="summary-grid" aria-label="System summary">
+      <div class="summary-item">
+        <strong>Power entry</strong>
+        120 V AC three-prong input enters through the fused inlet and breaker.
+      </div>
+      <div class="summary-item">
+        <strong>Two 5 V supplies</strong>
+        The controller PSU stays on. The LED-panel PSU is switched by the relay.
+      </div>
+      <div class="summary-item">
+        <strong>Display chain</strong>
+        Pi micro HDMI to DVI, MSD300-1 sender, one Ethernet cable, NV3210, ribbon cables, six panels.
+      </div>
+    </div>
+
+    <h2>Compact Wiring Diagram</h2>
+    <div class="diagram-wrap" aria-label="Simplified printable wiring diagram">
+      <svg viewBox="0 0 980 640" role="img" aria-labelledby="diagram-title diagram-desc">
+        <title id="diagram-title">Simplified wiring diagram for the Conway Garden control box</title>
+        <desc id="diagram-desc">120 V AC enters the enclosure, ground lands on a ground terminal block, one 5 V supply powers the controller path, the relay switches the separate LED panel supply, and the video signal runs from the Raspberry Pi through the NovaStar sender and receiver to six LED matrix panels.</desc>
+        <defs>
+          <marker id="arrow-ac" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M1,1 L8,4.5 L1,8 Z" fill="#8b4b22"></path>
+          </marker>
+          <marker id="arrow-dc" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M1,1 L8,4.5 L1,8 Z" fill="#bf2f38"></path>
+          </marker>
+          <marker id="arrow-ground" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M1,1 L8,4.5 L1,8 Z" fill="#477b3d"></path>
+          </marker>
+          <marker id="arrow-control" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M1,1 L8,4.5 L1,8 Z" fill="#0f6d74"></path>
+          </marker>
+          <marker id="arrow-signal" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M1,1 L8,4.5 L1,8 Z" fill="#4f5f2f"></path>
+          </marker>
+        </defs>
+
+        <rect x="18" y="18" width="944" height="604" rx="10" fill="#f7faf8" stroke="#ccd7dc"></rect>
+
+        <rect class="box" x="45" y="252" width="115" height="78" rx="7"></rect>
+        <text class="box-title" x="102.5" y="284" text-anchor="middle">120 V AC</text>
+        <text class="box-note" x="102.5" y="304" text-anchor="middle">3-prong input</text>
+
+        <rect class="box" x="205" y="252" width="130" height="78" rx="7"></rect>
+        <text class="box-title" x="270" y="282" text-anchor="middle">Fuse Inlet</text>
+        <text class="box-note" x="270" y="303" text-anchor="middle">and breaker</text>
+
+        <rect class="box" x="205" y="422" width="130" height="78" rx="7"></rect>
+        <text class="box-title" x="270" y="452" text-anchor="middle">Ground</text>
+        <text class="box-note" x="270" y="473" text-anchor="middle">terminal block</text>
+
+        <rect class="box" x="390" y="100" width="150" height="78" rx="7"></rect>
+        <text class="box-title" x="465" y="131" text-anchor="middle">Controller PSU</text>
+        <text class="box-note" x="465" y="151" text-anchor="middle">5 V always on</text>
+
+        <rect class="box" x="595" y="100" width="130" height="78" rx="7"></rect>
+        <text class="box-title" x="660" y="131" text-anchor="middle">Fuse Box</text>
+        <text class="box-note" x="660" y="151" text-anchor="middle">Pi, NovaStar, fan</text>
+
+        <rect class="box" x="790" y="95" width="130" height="84" rx="7"></rect>
+        <text class="box-title" x="855" y="124" text-anchor="middle">X1201 + Pi</text>
+        <text class="box-note" x="855" y="145" text-anchor="middle">battery-backed</text>
+        <text class="box-note" x="855" y="161" text-anchor="middle">controller</text>
+
+        <rect class="soft-box" x="790" y="245" width="130" height="84" rx="7"></rect>
+        <text class="box-title" x="855" y="274" text-anchor="middle">START button</text>
+        <text class="box-title" x="855" y="296" text-anchor="middle">STOP button</text>
+        <text class="box-note" x="855" y="315" text-anchor="middle">separate GPIO</text>
+
+        <rect class="box" x="390" y="270" width="150" height="78" rx="7"></rect>
+        <text class="box-title" x="465" y="300" text-anchor="middle">Relay</text>
+        <text class="box-note" x="465" y="321" text-anchor="middle">switches LED PSU</text>
+
+        <rect class="box" x="595" y="270" width="130" height="78" rx="7"></rect>
+        <text class="box-title" x="660" y="300" text-anchor="middle">LED PSU</text>
+        <text class="box-note" x="660" y="321" text-anchor="middle">5 V switched</text>
+
+        <rect class="box" x="790" y="418" width="130" height="88" rx="7"></rect>
+        <text class="box-title" x="855" y="449" text-anchor="middle">6 LED Matrix</text>
+        <text class="box-title" x="855" y="470" text-anchor="middle">Panels</text>
+        <text class="box-note" x="855" y="489" text-anchor="middle">5 V from LED PSU</text>
+
+        <rect class="soft-box" x="595" y="455" width="130" height="78" rx="7"></rect>
+        <text class="box-title" x="660" y="485" text-anchor="middle">NV3210</text>
+        <text class="box-note" x="660" y="506" text-anchor="middle">receiver card</text>
+
+        <rect class="soft-box" x="390" y="455" width="150" height="78" rx="7"></rect>
+        <text class="box-title" x="465" y="485" text-anchor="middle">MSD300-1</text>
+        <text class="box-note" x="465" y="506" text-anchor="middle">sender card</text>
+
+        <path class="wire ac" d="M160 291 L205 291" marker-end="url(#arrow-ac)"></path>
+        <path class="wire ac" d="M335 276 C365 210 365 139 390 139" marker-end="url(#arrow-ac)"></path>
+        <path class="wire ac" d="M335 306 C365 306 365 309 390 309" marker-end="url(#arrow-ac)"></path>
+        <path class="wire ac" d="M540 309 L595 309" marker-end="url(#arrow-ac)"></path>
+
+        <path class="wire ground" d="M118 330 C118 460 164 461 205 461" marker-end="url(#arrow-ground)"></path>
+        <path class="wire ground" d="M335 448 C365 340 365 150 390 150" marker-end="url(#arrow-ground)"></path>
+        <path class="wire ground" d="M335 474 C464 402 555 322 595 322" marker-end="url(#arrow-ground)"></path>
+
+        <path class="wire dc" d="M540 139 L595 139" marker-end="url(#arrow-dc)"></path>
+        <path class="wire dc" d="M725 139 L790 139" marker-end="url(#arrow-dc)"></path>
+        <path class="wire dc" d="M725 139 C750 190 746 265 725 309" marker-end="url(#arrow-dc)"></path>
+        <path class="wire dc" d="M725 309 C775 330 807 375 838 418" marker-end="url(#arrow-dc)"></path>
+
+        <path class="wire control" d="M790 287 C708 268 602 258 540 294" marker-end="url(#arrow-control)"></path>
+        <path class="wire control" d="M855 245 L855 179" marker-end="url(#arrow-control)"></path>
+
+        <path class="wire signal" d="M790 122 C680 190 555 305 488 455" marker-end="url(#arrow-signal)"></path>
+        <path class="wire signal" d="M540 494 L595 494" marker-end="url(#arrow-signal)"></path>
+        <path class="wire signal" d="M725 494 C755 492 779 480 790 462" marker-end="url(#arrow-signal)"></path>
+      </svg>
+
+      <div class="legend">
+        <span><i class="sample ac"></i>AC line/neutral</span>
+        <span><i class="sample ground"></i>Ground</span>
+        <span><i class="sample dc"></i>5 V DC</span>
+        <span><i class="sample control"></i>Button/relay control</span>
+        <span><i class="sample signal"></i>Video/data</span>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <h2>What Turns Off</h2>
+        <ul class="plain">
+          <li>The Pi controller path stays powered by the controller 5 V PSU and X1201 battery backup.</li>
+          <li>The relay switches the LED-panel PSU only.</li>
+          <li>When the relay is off, the six LED panels lose 5 V panel power while the Pi remains available.</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Protected Outputs</h2>
+        <ul class="plain">
+          <li>The fuse box protects the X1201/Pi branch.</li>
+          <li>The fuse box protects the NovaStar MSD300-1 sender.</li>
+          <li>The fuse box protects the NovaStar NV3210 receiver and the enclosure fan.</li>
+          <li>The fuse box does not protect or feed the LED panels.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="safety">
+      This packet is for client review and documentation. Final energized work still needs fuse ratings, wire gauge, strain relief, grounding, terminal torque, relay load/heat, and local electrical-code review.
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>Component Photos</h2>
+    <div class="parts">
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/fuse_inlet.jpg" alt="Power inlet and breaker"></div>
+        <div class="part-body">
+          <h3>Power inlet and breaker</h3>
+          <p>Protected entry point for the 120 V AC three-prong cable.</p>
+          <a href="https://www.amazon.com/URBEST-Module-Switch-Socket-IEC320/dp/B00ME5YAPK">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/ground_terminal.jpg" alt="Green ground terminal block"></div>
+        <div class="part-body">
+          <h3>Ground terminal block</h3>
+          <p>Case-bonded ground point that connects ground to both power supplies.</p>
+          <a href="https://www.didacticaselectronicas.com/shop/bor-brig-din-6p-ve-bornera-terminal-a-tierra-en-puente-6-posiciones-para-riel-din-verde-23676">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/lrs50.jpg" alt="MEAN WELL LRS-50-5 power supply"></div>
+        <div class="part-body">
+          <h3>Controller 5 V PSU</h3>
+          <p>Always-on MEAN WELL LRS-50-5 supply for Pi-side electronics.</p>
+          <a href="https://digiwarestore.com/en/power-supply/switching-power-supply-mean-well-lrs-50-5-5v-10a-644216.html">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/lrs150.jpg" alt="MEAN WELL LRS-150F-5 power supply"></div>
+        <div class="part-body">
+          <h3>LED panel 5 V PSU</h3>
+          <p>Relay-switched MEAN WELL supply for the LED matrix panels.</p>
+          <a href="https://www.electrokit.com/en/switchat-nataggregat-5v-22a-mean-well-lrs-150f-5">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/relay.jpg" alt="DIN rail solid-state relay"></div>
+        <div class="part-body">
+          <h3>Display power relay</h3>
+          <p>Pi-controlled relay that switches only the LED-panel PSU line input.</p>
+          <a href="https://lctcelec.com/solid-state-relay/">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/blue_sea.jpg" alt="Blue Sea Systems 5025 fuse block"></div>
+        <div class="part-body">
+          <h3>Fuse box</h3>
+          <p>Protects X1201/Pi, MSD300-1, NV3210, and fan branches.</p>
+          <a href="https://www.milltechmarine.com/blue-sea-5025-st-blade-fuse-block.html">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/x1201.jpg" alt="Geekworm X1201 UPS board"></div>
+        <div class="part-body">
+          <h3>Geekworm X1201</h3>
+          <p>UPS HAT that keeps the Raspberry Pi alive during power loss.</p>
+          <a href="https://geekworm.com/products/x1201">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/battery.jpg" alt="Samsung 30Q battery cell"></div>
+        <div class="part-body">
+          <h3>Samsung 30Q cells</h3>
+          <p>Two 3.7 V 18650 cells for the X1201 backup board.</p>
+          <a href="https://uae.microless.com/product/samsung-30q-inr-18650-3000mah-3-7v-unprotected-high-drain-15a-lithium-ion-li-ion-flat-top-battery/">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/pi5.png" alt="Raspberry Pi 5 board"></div>
+        <div class="part-body">
+          <h3>Raspberry Pi 5</h3>
+          <p>Runs the garden controller, video output, buttons, and relay control.</p>
+          <a href="https://robocraze.com/products/official-raspberry-pi-5-model-b-1gb-ram">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/push_buttons.jpg" alt="APIELE push buttons"></div>
+        <div class="part-body">
+          <h3>START button</h3>
+          <p>Dedicated front-panel START input for the controller.</p>
+          <a href="https://www.amazon.com/APIELE-Warranty-Button-Switch-Stainless/dp/B07NZDW47Q">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/push_buttons.jpg" alt="APIELE push buttons"></div>
+        <div class="part-body">
+          <h3>STOP button</h3>
+          <p>Dedicated front-panel STOP input. It stops the display, not Pi power.</p>
+          <a href="https://www.amazon.com/APIELE-Warranty-Button-Switch-Stainless/dp/B07NZDW47Q">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/video_adapter.jpg" alt="Micro HDMI to DVI adapter"></div>
+        <div class="part-body">
+          <h3>Micro HDMI to DVI</h3>
+          <p>Adapts Raspberry Pi video output for the MSD300-1 sender.</p>
+          <a href="https://www.amazon.com/CableCreation-Monitor-Adapter-Compatible-Raspberry/dp/B08B84C3Q4">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/msd300.jpg" alt="NovaStar MSD300-1 sender card"></div>
+        <div class="part-body">
+          <h3>NovaStar MSD300-1</h3>
+          <p>Receives DVI video and sends display data over Ethernet.</p>
+          <a href="https://www.led-card.com/products/novastar-msd300-sending-card">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/ethernet.webp" alt="Ethernet cable"></div>
+        <div class="part-body">
+          <h3>Ethernet cable</h3>
+          <p>One complete cable from the MSD300-1 sender to the NV3210 receiver.</p>
+          <a href="https://www.ugreen.com/products/ugreen-ethernet-extension-cable">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/nv3210.jpg" alt="NovaStar NV3210 receiving card"></div>
+        <div class="part-body">
+          <h3>NovaStar NV3210</h3>
+          <p>Receiver card that connects to the LED matrix panels by ribbon cable.</p>
+          <a href="https://www.novastar.tech/products/receiving-card-nv3210/">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/led_matrix_panel.jpg" alt="RGB LED matrix panel"></div>
+        <div class="part-body">
+          <h3>LED matrix panels (x6)</h3>
+          <p>Six panels receive 5 V from the LED PSU and data from the NV3210.</p>
+          <a href="https://seengreat.com/product/191/matrix-panel-3mm">Photo source</a>
+        </div>
+      </article>
+
+      <article class="part">
+        <div class="photo"><img src="assets/client-photos/fan.jpg" alt="30 mm fan"></div>
+        <div class="part-body">
+          <h3>Enclosure fan</h3>
+          <p>Small 5 V fan on the protected controller/display-electronics side.</p>
+          <a href="https://www.amazon.com/Easycargo-3007-Brushless-Cooling-25x25x7mm/dp/B08GKT3BQ6">Photo source</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>WireViz Appendix</h2>
+    <p>WireViz remains the editable source of record for the simplified wiring model and generated BOM. The long raw render is useful as an appendix, not as the primary client-facing page.</p>
+    <div class="artifact-list">
+      <a href="conway-garden-client-overview.yml">WireViz source YAML</a>
+      <a href="out/conway-garden-client-overview.html">WireViz HTML render and BOM</a>
+      <a href="out/conway-garden-client-overview.svg">WireViz SVG render</a>
+      <a href="out/conway-garden-client-overview.bom.tsv">WireViz BOM TSV</a>
+    </div>
+
+    <h2>Source Notes</h2>
+    <ul class="plain">
+      <li>START button is GPIO18. STOP button is GPIO19. Relay control is GPIO20.</li>
+      <li>The X1201 PLD signal remains the Pi-side power-loss input.</li>
+      <li>The LED-panel PSU is separate from the controller PSU so the display can be switched without cutting Pi power.</li>
+      <li>The display path is Raspberry Pi micro HDMI, DVI into MSD300-1, one Ethernet cable to NV3210, then ribbon cables to six LED matrix panels.</li>
+    </ul>
+
+    <p class="print-note">Generated PDF target: <a href="out/conway-garden-client-print.pdf">out/conway-garden-client-print.pdf</a></p>
+  </section>
+</body>
+</html>

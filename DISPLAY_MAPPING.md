@@ -1,8 +1,14 @@
 # Display Mapping
 
-**Current verified state:** 2026-05-15  
-**Display chain:** Raspberry Pi 5 -> HDMI -> NovaStar MSD300-1 sender ->
-NovaStar MRV412 receiver -> LED panels
+**Current verified app-side state:** 2026-05-15
+
+**Current hardware correction:** 2026-07-08
+**Display chain:** Raspberry Pi 5 -> micro HDMI/DVI -> NovaStar MSD300-1
+sender -> NovaStar NV3210 receiver -> six LED matrix panels
+
+The app-side mapping evidence below is from the 2026-05-15 live verification.
+The receiver-card name and panel count were corrected in the 2026-07-08 wiring
+packet.
 
 ## Current Working App Mapping
 

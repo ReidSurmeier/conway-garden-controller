@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Generated BOM rows retain a final tab for an empty Designators TSV field.
+docs/wiring/out/*.bom.tsv -whitespace
